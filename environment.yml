@@ -1,0 +1,7 @@
+name: dcenv
+channels:
+  - conda-forge
+dependencies:
+  - pandas
+  - numpy
+  - sklearn
