@@ -2,6 +2,15 @@ name: dcenv
 channels:
   - conda-forge
 dependencies:
-  - pandas
+  - python=3.12.3
   - numpy
-  - sklearn
+  - pandas
+  - scikit-learn
+  - mlflow
+  - matplotlib
+  - seaborn
+  - jupyter
+  - optuna
+  - black
+  - flask
+
