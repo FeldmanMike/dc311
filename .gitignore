@@ -1,5 +1,5 @@
 *.csv
-__pycache__
 *.log
 *.json
-**/*.pyc
+*.pyc
+__pycache__/

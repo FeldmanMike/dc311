@@ -13,4 +13,5 @@ dependencies:
   - optuna
   - black
   - flask
+  - python-dotenv
 
