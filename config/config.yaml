@@ -1,0 +1,10 @@
+dc_311_data_api_endpoints:
+  2023: "https://maps2.dcgis.dc.gov/dcgis/rest/services/\
+    DCGIS_DATA/ServiceRequests/MapServer/15/query"
+  
+api_query_parameters:
+  where: "1=1"
+  outFields: "*"
+  f: "json"
+  resultRecordCount: 30
+

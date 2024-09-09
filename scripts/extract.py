@@ -1,8 +1,8 @@
 '''
 Download datasets
 '''
-import configparser
 import os
+import yaml
 
 from dotenv import load_dotenv
 
@@ -11,14 +11,12 @@ from dc311.data.extract import download_dataset_as_json
 
 
 def main():
-
     setup_logging()
-    
+
     load_dotenv()
     config_path = os.getenv('DC_311_CONFIG_PATH')
-
-    config = configparser.ConfigParser()
-    config.read(config_path)
+    with open(config_path, 'r') as file:
+        config = yaml.safe_load(file)
 
     project_dir = os.path.dirname(os.path.dirname(__file__))
     outfile_dir = os.path.join(project_dir, "data", "raw")
