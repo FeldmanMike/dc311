@@ -30,19 +30,40 @@ def download_dataset_as_json(url: str, param_dict: Dict, outfile: str) -> None:
         
         logger.info(f"Retriving dataset from {url}...")
         logger.debug(f"Parameters passed to URL are: {param_dict}")
-        response = requests.get(url, params=param_dict)
-        logger.info(f"Dataset retrieved.")
-        
-        logger.info("Parsing the JSON response...")
-        data = response.json()
-        logger.info("JSON parsed.")
-        
+
+        all_records = []
+
+        # We can only retrieve 1000 records at a time, so we will need many API calls
+        # to retrieve all the data
+        while True
+            response = requests.get(url, params=param_dict)
+            data = response.json()
+
+            # Check if records are present
+            if "features" not in data or len(data["features"] == 0):
+                break
+
+            record_list = data["features"]
+            all_records.extend(record_list)
+
+            if len(all_records) % 50000 == 0:
+                logging.info(f"Retrieved {len(all_records)} records...")
+
+            # If fewer records are returned than resultRecordCount, we have retrieved
+            # all the data
+            if len(record_list) < param_dict["resultRecordCount"]:
+                break
+
+            param_dict["resultOffset"] += param_dict["resultRecordCount"]
+            
+
+        logger.info(f"Retrieved all {len(all_records)} records.")
         logger.info(f"Dumping data to {outfile}...")
         with open(outfile, 'w') as file:
             json.dump(data, file, indent=4)
         logger.info("File saved.")
     except Exception as e:
-        logger.error(f"An error occurred: {e}", exc_info=True)
+        logger.exception(f"An error occurred: {e}")
 
 
 

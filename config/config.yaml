@@ -6,5 +6,6 @@ api_query_parameters:
   where: "1=1"
   outFields: "*"
   f: "json"
-  resultRecordCount: 30
+  resultRecordCount: 1000
+  resultOffset: 0
 
