@@ -20,13 +20,13 @@ LOGGING_CONFIG = {
         'console_handler': {
             'class': 'logging.StreamHandler',
             'formatter': 'standard',
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
     },
     'loggers': {
         '': {
             'handlers': ['file_handler', 'console_handler'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': True
         }
     }

@@ -1,6 +1,7 @@
-'''
+"""
 Extract 311 data from DC Data Portal
-'''
+"""
+
 import json
 import logging
 import os
@@ -9,8 +10,9 @@ from typing import Dict
 
 logger = logging.getLogger(__name__)
 
+
 def download_dataset_as_json(url: str, param_dict: Dict, outfile: str) -> None:
-    '''
+    """
     Download a dataset from a given URL to a JSON.
 
     url: Full URL of the website from which to download data
@@ -21,13 +23,15 @@ def download_dataset_as_json(url: str, param_dict: Dict, outfile: str) -> None:
 
     Returns:
         None. Outputs JSON file to the path provided.
-    '''
+    """
     try:
-        file_extension = os.path.splitext(outfile)[1] 
+        file_extension = os.path.splitext(outfile)[1]
         if file_extension != ".json":
-            logger.error(f"Invalid file extension for outfile: {file_extension}. "
-                          "Expected a JSON extension.")
-        
+            logger.error(
+                f"Invalid file extension for outfile: {file_extension}. "
+                "Expected a JSON extension."
+            )
+
         logger.info(f"Retriving dataset from {url}...")
         logger.debug(f"Parameters passed to URL are: {param_dict}")
 
@@ -35,12 +39,12 @@ def download_dataset_as_json(url: str, param_dict: Dict, outfile: str) -> None:
 
         # We can only retrieve 1000 records at a time, so we will need many API calls
         # to retrieve all the data
-        while True
+        while True:
             response = requests.get(url, params=param_dict)
             data = response.json()
 
             # Check if records are present
-            if "features" not in data or len(data["features"] == 0):
+            if "features" not in data or len(data["features"])== 0:
                 break
 
             record_list = data["features"]
@@ -55,16 +59,11 @@ def download_dataset_as_json(url: str, param_dict: Dict, outfile: str) -> None:
                 break
 
             param_dict["resultOffset"] += param_dict["resultRecordCount"]
-            
 
         logger.info(f"Retrieved all {len(all_records)} records.")
         logger.info(f"Dumping data to {outfile}...")
-        with open(outfile, 'w') as file:
+        with open(outfile, "w") as file:
             json.dump(data, file, indent=4)
         logger.info("File saved.")
     except Exception as e:
         logger.exception(f"An error occurred: {e}")
-
-
-
-
