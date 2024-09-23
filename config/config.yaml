@@ -1,6 +1,10 @@
 dc_311_data_api_endpoints:
+  2021: "https://maps2.dcgis.dc.gov/dcgis/rest/services/\
+    DCGIS_DATA/ServiceRequests/FeatureServer/12/query"
+  2022: "https://maps2.dcgis.dc.gov/dcgis/rest/services/\
+    DCGIS_DATA/ServiceRequests/FeatureServer/14/query"
   2023: "https://maps2.dcgis.dc.gov/dcgis/rest/services/\
-    DCGIS_DATA/ServiceRequests/MapServer/15/query"
+    DCGIS_DATA/ServiceRequests/FeatureServer/15/query"
   
 api_query_parameters:
   where: "1=1"
@@ -8,4 +12,8 @@ api_query_parameters:
   f: "json"
   resultRecordCount: 1000
   resultOffset: 0
+
+# Max number of records to extract. When this value is negative, we extract
+# the max possible number of records.
+max_num_records: -999
 

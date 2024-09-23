@@ -1,6 +1,7 @@
 """
 Download datasets
 """
+
 import argparse
 import logging
 import os
@@ -30,7 +31,7 @@ def main():
     parser.add_argument(
         "-f",
         "--force",
-        type="store_true",
+        action="store_true",
         help="Force download all years provided, if `-y` flag "
         "provided, or all years of data that can possibly "
         "be downloaded, if `-y` flag not provided, "
@@ -46,19 +47,24 @@ def main():
     outfile_dir = os.path.join(project_dir, "data", "raw")
     endpoints = config["dc_311_data_api_endpoints"]
     query_params = config["api_query_parameters"]
-    
+
     possible_years = [year for year in endpoints]
     if args.years:
         year_list = args.years
     else:
         year_list = possible_years
-    
+
     logger.debug(f"Years to be cycled through: {year_list}")
     for year in year_list:
         filename = os.path.join(outfile_dir, f"dc_311_{str(year)}_data.json")
         if args.force or not os.path.exists(filename):
             logger.info(f"Getting data from year: {year}")
             download_dataset_as_json(endpoints[year], query_params, filename)
+        else:
+            logger.info(
+                f"Dataset for {year} already downloaded to {filename}. Skipping "
+                "download..."
+            )
 
 
 if __name__ == "__main__":

@@ -11,7 +11,8 @@ from typing import Dict
 logger = logging.getLogger(__name__)
 
 
-def download_dataset_as_json(url: str, param_dict: Dict, outfile: str) -> None:
+def download_dataset_as_json(url: str, param_dict: Dict, outfile: str,
+                             max_records: int = None) -> None:
     """
     Download a dataset from a given URL to a JSON.
 
@@ -19,6 +20,8 @@ def download_dataset_as_json(url: str, param_dict: Dict, outfile: str) -> None:
     param_dict: Dictonary of parameters to append to the URL. View API
         documentation associated with URL for more detail on expected
         parameters
+    max_records: Maximum number of records to extract. If None or negative, then
+        the maximum number of records possible will be extracted
     outfile: Full path of JSON to be saved
 
     Returns:
@@ -57,6 +60,11 @@ def download_dataset_as_json(url: str, param_dict: Dict, outfile: str) -> None:
             # all the data
             if len(record_list) < param_dict["resultRecordCount"]:
                 break
+            
+            # Ensure we do not exceed max_records if it is provided
+            if (max_records is not None) and (len(all_records) >= max_records):
+                all_records = all_records[:max_records]
+                break
 
             param_dict["resultOffset"] += param_dict["resultRecordCount"]
 
@@ -65,5 +73,9 @@ def download_dataset_as_json(url: str, param_dict: Dict, outfile: str) -> None:
         with open(outfile, "w") as file:
             json.dump(data, file, indent=4)
         logger.info("File saved.")
+    except requests.exceptions.JSONDecodeError as e:
+        # TODO - add record number of invalid record
+        logger.info("Skipping invalid record...")
+        continue
     except Exception as e:
         logger.exception(f"An error occurred: {e}")
