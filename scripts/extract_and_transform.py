@@ -1,8 +1,9 @@
 """
-Download datasets
+Download datasets and transform them to CSVs
 """
 
 import argparse
+import copy
 import logging
 import os
 import yaml
@@ -11,6 +12,7 @@ from dotenv import load_dotenv
 
 from config.logging_config import setup_logging
 from dc311.data.extract import download_dataset_as_json
+from dc311.data.transform import transform_json_to_csv
 
 
 def main():
@@ -25,7 +27,7 @@ def main():
         "--years",
         nargs="+",
         type=int,
-        help="Years for which data should be pulled. Consult the "
+        help="Years for which data should be pulled and converted. Consult the "
         "config file for years available.",
     )
     parser.add_argument(
@@ -44,7 +46,8 @@ def main():
         config = yaml.safe_load(file)
 
     project_dir = os.path.dirname(os.path.dirname(__file__))
-    outfile_dir = os.path.join(project_dir, "data", "raw")
+    raw_file_dir = os.path.join(project_dir, "data", "raw")
+    interim_file_dir = os.path.join(project_dir, "data", "interim")
     endpoints = config["dc_311_data_api_endpoints"]
     query_params = config["api_query_parameters"]
 
@@ -56,15 +59,21 @@ def main():
 
     logger.debug(f"Years to be cycled through: {year_list}")
     for year in year_list:
-        filename = os.path.join(outfile_dir, f"dc_311_{str(year)}_data.json")
+        filename = os.path.join(raw_file_dir, f"dc_311_{str(year)}_data.json")
         if args.force or not os.path.exists(filename):
             logger.info(f"Getting data from year: {year}")
-            download_dataset_as_json(endpoints[year], query_params, filename)
+
+            # Copy query_params to ensure we do not modify original params
+            download_dataset_as_json(
+                endpoints[year], copy.deepcopy(query_params), filename
+            )
         else:
             logger.info(
                 f"Dataset for {year} already downloaded to {filename}. Skipping "
                 "download..."
             )
+        
+        transform_json_to_csv(filename
 
 
 if __name__ == "__main__":

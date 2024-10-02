@@ -11,8 +11,9 @@ from typing import Dict
 logger = logging.getLogger(__name__)
 
 
-def download_dataset_as_json(url: str, param_dict: Dict, outfile: str,
-                             max_records: int = None) -> None:
+def download_dataset_as_json(
+    url: str, param_dict: Dict, outfile: str, max_records: int = None
+) -> None:
     """
     Download a dataset from a given URL to a JSON.
 
@@ -47,20 +48,20 @@ def download_dataset_as_json(url: str, param_dict: Dict, outfile: str,
             data = response.json()
 
             # Check if records are present
-            if "features" not in data or len(data["features"])== 0:
+            if "features" not in data or len(data["features"]) == 0:
                 break
 
             record_list = data["features"]
             all_records.extend(record_list)
 
-            if len(all_records) % 50000 == 0:
+            if len(all_records) % 25000 == 0:
                 logging.info(f"Retrieved {len(all_records)} records...")
 
             # If fewer records are returned than resultRecordCount, we have retrieved
             # all the data
             if len(record_list) < param_dict["resultRecordCount"]:
                 break
-            
+
             # Ensure we do not exceed max_records if it is provided
             if (max_records is not None) and (len(all_records) >= max_records):
                 all_records = all_records[:max_records]
@@ -71,11 +72,14 @@ def download_dataset_as_json(url: str, param_dict: Dict, outfile: str,
         logger.info(f"Retrieved all {len(all_records)} records.")
         logger.info(f"Dumping data to {outfile}...")
         with open(outfile, "w") as file:
-            json.dump(data, file, indent=4)
+            json.dump(all_records, file, indent=4)
         logger.info("File saved.")
     except requests.exceptions.JSONDecodeError as e:
-        # TODO - add record number of invalid record
-        logger.info("Skipping invalid record...")
-        continue
+        logger.exception(
+            f"An error occurred between records "
+            "{param_dict['resultOffset']} and "
+            "{param_dict['resultRecordCount']}: {e}"
+        )
+        raise
     except Exception as e:
         logger.exception(f"An error occurred: {e}")
