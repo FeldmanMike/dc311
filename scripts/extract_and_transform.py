@@ -47,7 +47,6 @@ def main():
 
     project_dir = os.path.dirname(os.path.dirname(__file__))
     raw_file_dir = os.path.join(project_dir, "data", "raw")
-    interim_file_dir = os.path.join(project_dir, "data", "interim")
     endpoints = config["dc_311_data_api_endpoints"]
     query_params = config["api_query_parameters"]
 
@@ -59,21 +58,23 @@ def main():
 
     logger.debug(f"Years to be cycled through: {year_list}")
     for year in year_list:
-        filename = os.path.join(raw_file_dir, f"dc_311_{str(year)}_data.json")
-        if args.force or not os.path.exists(filename):
+        json_filename = os.path.join(raw_file_dir, f"dc_311_{str(year)}_data.json")
+        if args.force or not os.path.exists(json_filename):
             logger.info(f"Getting data from year: {year}")
 
             # Copy query_params to ensure we do not modify original params
             download_dataset_as_json(
-                endpoints[year], copy.deepcopy(query_params), filename
+                endpoints[year], copy.deepcopy(query_params), json_filename
             )
         else:
             logger.info(
-                f"Dataset for {year} already downloaded to {filename}. Skipping "
+                f"Dataset for {year} already downloaded to {json_filename}. Skipping "
                 "download..."
             )
         
-        transform_json_to_csv(filename
+        csv_filename = os.path.join(raw_file_dir, f"dc_311_{str(year)}_data.csv")
+        logger.info(f"Transforming {json_filename} to CSV at {csv_filename}...")
+        transform_json_to_csv(json_filename, csv_filename)
 
 
 if __name__ == "__main__":
