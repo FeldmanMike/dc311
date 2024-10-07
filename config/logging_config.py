@@ -10,23 +10,23 @@ LOGGING_CONFIG = {
         },
     },
     'handlers': {
-        'file': {
+        'file_handler': {
             'class': 'logging.FileHandler',
             'formatter': 'standard',
-            'filename': 'app.log',
+            'filename': 'logs/dev.log',
             'mode': 'a',
             'level': 'INFO',
         },
-        'console': {
+        'console_handler': {
             'class': 'logging.StreamHandler',
             'formatter': 'standard',
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
     },
     'loggers': {
         '': {
             'handlers': ['file_handler', 'console_handler'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': True
         }
     }
