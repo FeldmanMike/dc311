@@ -71,7 +71,7 @@ def main():
                 f"Dataset for {year} already downloaded to {json_filename}. Skipping "
                 "download..."
             )
-        
+
         csv_filename = os.path.join(raw_file_dir, f"dc_311_{str(year)}_data.csv")
         logger.info(f"Transforming {json_filename} to CSV at {csv_filename}...")
         transform_json_to_csv(json_filename, csv_filename)

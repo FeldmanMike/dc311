@@ -7,7 +7,6 @@ import pytest
 
 import pandas as pd
 
-import dc311.data.extract as extract
 import dc311.data.transform as transform
 
 

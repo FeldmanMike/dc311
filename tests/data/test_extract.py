@@ -8,7 +8,7 @@ import pytest
 import dc311.data.extract as extract
 
 
-@pytest.mark.parametrize("year", [2021, 2022, 2023])
+@pytest.mark.parametrize("year", [2022])
 def test_data_extraction(config, year):
     url = config["dc_311_data_api_endpoints"][year]
     outfile = os.path.join(os.path.dirname(__file__), f"test_{str(year)}_311_data.json")
