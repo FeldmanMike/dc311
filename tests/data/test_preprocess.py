@@ -7,7 +7,7 @@ import pytest
 
 import pandas as pd
 
-import dc311.data.transform as transform
+import dc311.data.preprocess as preprocess
 
 
 def test_json_to_csv_conversion(test_json):
@@ -15,7 +15,7 @@ def test_json_to_csv_conversion(test_json):
         curr_dir = os.path.dirname(__file__)
         json_path = os.path.join(curr_dir, "test.json")
         csv_path = os.path.join(curr_dir, "test.csv")
-        transform.transform_json_to_csv(json_path, csv_path)
+        preprocess.transform_json_to_csv(json_path, csv_path)
 
         assert os.path.exists(csv_path)
         df = pd.read_csv(csv_path)

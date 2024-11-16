@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 from config.logging_config import setup_logging
 from dc311.data.extract import download_dataset_as_json
-from dc311.data.transform import transform_json_to_csv
+from dc311.data.preprocess import transform_json_to_csv
 
 
 def main():
