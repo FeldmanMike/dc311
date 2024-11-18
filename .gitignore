@@ -3,4 +3,4 @@
 *.json
 *.pyc
 __pycache__/
-data/
+metadata.*
