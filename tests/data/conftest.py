@@ -2,6 +2,7 @@
 Set up fixtures for testing
 """
 
+from datetime import datetime
 import json
 import os
 import pytest
@@ -77,5 +78,18 @@ def datetime_conversion_df():
         "date_col_1": [1609479125000, 1609481125000],
         "date_col_2": [1609512550000, 1609509375000],
         "col_3": [1, 2],
+    }
+    return pd.DataFrame(data_dict)
+
+
+@pytest.fixture
+def days_to_resolve_df():
+    data_dict = {
+        "adddate": [
+            datetime(2024, 11, 1),
+            datetime(2024, 11, 5),
+            datetime(2024, 11, 10),
+        ],
+        "resolutiondate": [datetime(2024, 11, 3), datetime(2024, 11, 8), None],
     }
     return pd.DataFrame(data_dict)

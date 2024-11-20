@@ -4,6 +4,7 @@ Test dc311/data/extract.py
 
 import os
 
+import numpy as np
 import pandas as pd
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
 
@@ -43,3 +44,11 @@ def test_convert_columns_to_datetime(datetime_conversion_df):
     assert is_datetime(df["date_col_1"])
     assert is_datetime(df["date_col_2"])
     assert not is_datetime(df["col_3"])
+
+
+def test_create_days_to_resolve_field(days_to_resolve_df):
+    df = prep.create_days_to_resolve_field(days_to_resolve_df)
+    assert "days_to_resolve" in df.columns
+    assert df["days_to_resolve"][0] == pd.Timedelta(days=2)
+    assert df["days_to_resolve"][1] == pd.Timedelta(days=3)
+    assert pd.isna(df["days_to_resolve"][2])
