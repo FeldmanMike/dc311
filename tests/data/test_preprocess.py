@@ -52,3 +52,8 @@ def test_create_days_to_resolve_field(days_to_resolve_df):
     assert df["days_to_resolve"][0] == pd.Timedelta(days=2)
     assert df["days_to_resolve"][1] == pd.Timedelta(days=3)
     assert pd.isna(df["days_to_resolve"][2])
+
+
+def test_process_ward_field(ward_df):
+    df = prep.process_ward_field(ward_df)
+    assert df["ward"].to_list() == [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, ""]

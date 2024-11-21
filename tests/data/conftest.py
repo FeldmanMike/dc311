@@ -93,3 +93,29 @@ def days_to_resolve_df():
         "resolutiondate": [datetime(2024, 11, 3), datetime(2024, 11, 8), None],
     }
     return pd.DataFrame(data_dict)
+
+
+@pytest.fixture
+def ward_df():
+    data_dict = {
+        "ward": [
+            1,
+            "Ward 1",
+            2,
+            "Ward 2",
+            3,
+            "Ward 3",
+            4,
+            "Ward 4",
+            5,
+            "Ward 5",
+            6,
+            "Ward 6",
+            7,
+            "Ward 7",
+            8,
+            "Ward 8",
+            "",
+        ]
+    }
+    return pd.DataFrame(data_dict)
