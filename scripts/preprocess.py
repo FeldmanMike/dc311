@@ -54,15 +54,18 @@ def main():
     logger.info(f"Files to be preprocessed are: {raw_file_list}")
 
     out_file_dir = os.path.join(project_dir, "data", "interim")
-    logger.info(f"Preprocessed data to be output to: {out_file_dir}")
     for filename in raw_file_list:
         raw_file = os.path.join(raw_file_dir, filename)
         logger.info(f"Preprocessing {raw_file}")
         df = pd.read_csv(raw_file)
-
-        # Perform preprocessing
-
-        # Output to out_file_dir
+        df = prep.transform_column_names_to_lowercase(df)
+        df = prep.convert_columns_to_datetime(df)
+        df = prep.create_days_to_resolve_field(df)
+        df = prep.process_ward_field(df)
+        out_file_path = os.path.join(out_file_dir, filename)
+        logger.info(f"Preprocessing complete. Outputting data to {out_file_path}...")
+        df.to_csv(out_file_path, index=False)
+        logger.info(f"File successfully output to {out_file_path}.")
 
 
 if __name__ == "__main__":
