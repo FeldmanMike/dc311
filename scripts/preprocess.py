@@ -38,7 +38,7 @@ def main():
     )
     args = parser.parse_args()
 
-    logger.info("Fetching directory with data to be preprocessed...")
+    logger.info("Fetching name of directory with data to be preprocessed...")
     if args.directory:
         raw_file_dir = args.directory
     else:
@@ -56,14 +56,27 @@ def main():
     out_file_dir = os.path.join(project_dir, "data", "interim")
     for filename in raw_file_list:
         raw_file = os.path.join(raw_file_dir, filename)
-        logger.info(f"Preprocessing {raw_file}")
+        logger.info(f"Reading {raw_file}...")
         df = pd.read_csv(raw_file)
+        logger.info(f"{raw_file} read.")
+        logger.info(f"Preprocessing {raw_file}")
         df = prep.transform_column_names_to_lowercase(df)
-        df = prep.convert_columns_to_datetime(df)
+
+        time_columns = [
+            "adddate",
+            "resolutiondate",
+            "serviceduedate",
+            "serviceorderdate",
+            "inspectiondate",
+        ]
+        df = prep.convert_columns_to_datetime(df, time_columns)
+
         df = prep.create_days_to_resolve_field(df)
         df = prep.process_ward_field(df)
         out_file_path = os.path.join(out_file_dir, filename)
-        logger.info(f"Preprocessing complete. Outputting data to {out_file_path}...")
+        logger.info(
+            f"Preprocessing of {raw_file} complete. Outputting data to {out_file_path}..."
+        )
         df.to_csv(out_file_path, index=False)
         logger.info(f"File successfully output to {out_file_path}.")
 
