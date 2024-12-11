@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 from config.logging_config import setup_logging
 from dc311.data.extract import download_dataset_as_json
-from dc311.data.transform import transform_json_to_csv
+from dc311.data.preprocess import transform_json_to_csv
 
 
 def main():
@@ -73,8 +73,13 @@ def main():
             )
 
         csv_filename = os.path.join(raw_file_dir, f"dc_311_{str(year)}_data.csv")
-        logger.info(f"Transforming {json_filename} to CSV at {csv_filename}...")
-        transform_json_to_csv(json_filename, csv_filename)
+        if args.force or not os.path.exists(csv_filename):
+            logger.info(f"Transforming {json_filename} to CSV at {csv_filename}...")
+            transform_json_to_csv(json_filename, csv_filename)
+        else:
+            logger.info(
+                f"File {csv_filename} already exists. Skipping data transformation..."
+            )
 
 
 if __name__ == "__main__":

@@ -17,13 +17,14 @@ def download_dataset_as_json(
     """
     Download a dataset from a given URL to a JSON.
 
-    url: Full URL of the website from which to download data
-    param_dict: Dictonary of parameters to append to the URL. View API
-        documentation associated with URL for more detail on expected
-        parameters
-    max_records: Maximum number of records to extract. If None or negative, then
-        the maximum number of records possible will be extracted
-    outfile: Full path of JSON to be saved
+    Args:
+        url: Full URL of the website from which to download data
+        param_dict: Dictonary of parameters to append to the URL. View API
+            documentation associated with URL for more detail on expected
+            parameters
+        max_records: Maximum number of records to extract. If None or negative, then
+            the maximum number of records possible will be extracted
+        outfile: Full path of JSON to be saved
 
     Returns:
         None. Outputs JSON file to the path provided.
