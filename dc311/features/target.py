@@ -5,6 +5,8 @@ Create target for model
 from typing import Optional
 
 import pandas as pd
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Binarizer
 
 
@@ -12,7 +14,9 @@ def create_target(
     df: pd.DataFrame, target_column: str, task: str, clf_threshold: Optional[int]
 ) -> pd.Series:
     """
-    Create target for model.
+    Create target for model. Note - for regression tasks, missing values are dropped
+    and for classification tasks, missing values are kept and imputed to 999999
+    (under the assumption that missingness indicates incomplete 311 cases).
 
     Args:
         df: pandas DataFrame with model target
@@ -26,11 +30,17 @@ def create_target(
         pandas Series that will be a target for the model
     """
     task_values = ({"regression", "classification"},)
-    assert task in task_values, f"Value of task must be in {task_values}"
+    assert task in task_values, f"Value of task must be in {task_values}."
 
     if task == "regression":
-        return df[target_column]
-    binarizer = Binarizer(threshold=clf_threshold)
+        return df[target_column].dropna()
+
+    pipe = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="constant", fill_value=999999)),
+            ("binarizer", Binarizer(threshold=clf_threshold)),
+        ]
+    )
     return pd.Series(
-        binarizer.fit_transform(df[[target_column]]).ravel(), name=target_column
+        pipe.fit_transform(df[[target_column]]).ravel(), name=target_column
     )
