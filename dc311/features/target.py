@@ -14,7 +14,7 @@ def create_target(
     df: pd.DataFrame, target_column: str, task: str, clf_threshold: Optional[int]
 ) -> pd.Series:
     """
-    Create target for model. Note - for regression tasks, missing values are dropped
+    Create target for model. For regression tasks, missing values are dropped
     and for classification tasks, missing values are kept and imputed to 999999
     (under the assumption that missingness indicates incomplete 311 cases).
 
