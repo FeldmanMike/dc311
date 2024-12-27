@@ -4,6 +4,7 @@ Create target for model
 
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
@@ -11,7 +12,7 @@ from sklearn.preprocessing import Binarizer
 
 
 def create_target(
-    df: pd.DataFrame, target_column: str, task: str, clf_threshold: Optional[int]
+    df: pd.DataFrame, target_column: str, task: str, clf_threshold: Optional[int] = None
 ) -> pd.Series:
     """
     Create target for model. For regression tasks, missing values are dropped
@@ -29,11 +30,11 @@ def create_target(
     Returns:
         pandas Series that will be a target for the model
     """
-    task_values = ({"regression", "classification"},)
-    assert task in task_values, f"Value of task must be in {task_values}."
+    task_values = set(["regression", "classification"])
+    assert task in task_values, f"Value of task '{task}' not in {task_values}."
 
     if task == "regression":
-        return df[target_column].dropna()
+        return df[target_column].replace("", np.nan).dropna()
 
     pipe = Pipeline(
         [
