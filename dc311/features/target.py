@@ -2,18 +2,25 @@
 Create target for model
 """
 
+import logging
 from typing import Optional
 
 import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import Binarizer
+from sklearn.preprocessing import Binarizer, FunctionTransformer
+
+logger = logging.getLogger(__name__)
+
+
+def to_numeric(X):
+    return X.apply(pd.to_numeric, errors="coerce")
 
 
 def create_target(
     df: pd.DataFrame, target_column: str, task: str, clf_threshold: Optional[int] = None
-) -> pd.Series:
+) -> pd.DataFrame:
     """
     Create target for model. For regression tasks, missing values are dropped
     and for classification tasks, missing values are kept and imputed to 999999
@@ -28,20 +35,23 @@ def create_target(
         threshold at which the target will be binarized
 
     Returns:
-        pandas Series that will be a target for the model
+        pandas DataFrame that will include a target for the model called "target"
     """
     task_values = set(["regression", "classification"])
     assert task in task_values, f"Value of task '{task}' not in {task_values}."
 
     if task == "regression":
-        return df[target_column].replace("", np.nan).dropna()
+        df["target"] = df[target_column].replace("", np.nan)
+        return df[df["target"].notna()]
 
     pipe = Pipeline(
         [
+            ("to_numeric", FunctionTransformer(to_numeric)),
             ("imputer", SimpleImputer(strategy="constant", fill_value=999999)),
             ("binarizer", Binarizer(threshold=clf_threshold)),
         ]
     )
-    return pd.Series(
+    df["target"] = pd.Series(
         pipe.fit_transform(df[[target_column]]).ravel(), name=target_column
     )
+    return df

@@ -19,7 +19,19 @@ def test_create_target_assertion_error():
 
 def test_create_target_regression(test_dataframe):
     """Test create_target() with regression task"""
-    test_dataframe["final_target"] = targ.create_target(
+    df = targ.create_target(
         df=test_dataframe, target_column="target", task="regression"
     )
-    assert test_dataframe["final_target"].to_list() == [2, 8, 3, 7]
+    assert df["target"].to_list() == [2, 8, 3, 7]
+
+
+def test_create_target_classification(test_dataframe):
+    """Test create_target() with classification task"""
+    df = targ.create_target(
+        df=test_dataframe,
+        target_column="target",
+        task="classification",
+        clf_threshold=3,
+    )
+    expected = [0, 1, 1, 1, 0, 1, 1, 1]
+    assert df["target"].to_list() == [float(i) for i in expected]
