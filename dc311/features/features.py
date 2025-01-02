@@ -71,6 +71,10 @@ def is_business_hours(hour):
     return 1 if 8 <= hour < 17 else 0
 
 
+def is_business_day(day):
+    return 1 if 0 <= day < 5 else 0
+
+
 def create_business_hours_feature(df):
     """
     Whether 311 request was made during business hours.
@@ -83,6 +87,12 @@ def create_business_hours_feature(df):
         hours
     """
     df["add_during_business_hours"] = df["adddate"].dt.hour.apply(is_business_hours)
+    df["add_during_business_day"] = df["adddate"].dt.day.apply(is_business_day)
+    df["add_during_business_hours"] = np.where(
+        (df["add_during_business_hours"] == 1) & (df["add_during_business_day"] == 1),
+        1,
+        0,
+    )
     return df[["add_during_business_hours"]]
 
 

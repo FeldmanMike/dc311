@@ -23,3 +23,8 @@ def test_create_quarter_feature(time_dataframe):
 def test_create_day_feature(time_dataframe):
     return_df = feat.create_day_feature(time_dataframe)
     assert return_df["add_day"].to_list() == [6, 4, 3]
+
+
+def test_create_business_hours_feature(time_dataframe):
+    return_df = feat.create_business_hours_feature(time_dataframe)
+    assert return_df["add_during_business_hours"].to_list() == [0, 1, 0]
