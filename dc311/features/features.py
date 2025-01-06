@@ -2,6 +2,7 @@
 Create features for model
 """
 
+import logging
 from typing import List
 
 import numpy as np
@@ -9,6 +10,9 @@ import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, OneHotEncoder
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_year_feature(df):
@@ -87,7 +91,7 @@ def create_business_hours_feature(df):
         hours
     """
     df["add_during_business_hours"] = df["adddate"].dt.hour.apply(is_business_hours)
-    df["add_during_business_day"] = df["adddate"].dt.day.apply(is_business_day)
+    df["add_during_business_day"] = df["adddate"].dt.dayofweek.apply(is_business_day)
     df["add_during_business_hours"] = np.where(
         (df["add_during_business_hours"] == 1) & (df["add_during_business_day"] == 1),
         1,
