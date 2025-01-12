@@ -150,11 +150,12 @@ def create_feature_engineering_pipeline(feature_list: List[str]):
     Returns:
         sklearn Pipeline object
     """
+    feature_selector = select_features(feature_list).set_output(transform="pandas")
     feature_transformer = engineer_features().set_output(transform="pandas")
-    feature_selector = select_features().set_output(transform="pandas")
     return Pipeline(
         [
-            ("feature_engineering", feature_transformer),
             ("feature_selector", feature_selector),
+            ("feature_engineering", feature_transformer),
+            ("drop", ColumnTransformer([("drop", "drop", "adddate")])),
         ]
     )
