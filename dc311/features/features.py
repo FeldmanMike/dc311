@@ -15,60 +15,56 @@ from sklearn.preprocessing import FunctionTransformer, OneHotEncoder
 logger = logging.getLogger(__name__)
 
 
-def create_year_feature(df):
+def create_year_feature(series: pd.Series):
     """
     Year that 311 request was made.
 
     Args:
-        df: pandas Dataframe with data
+        series: A pandas Series to be transformed
 
     Returns:
         pandas DataFrame with new column for year
     """
-    df["add_year"] = df["adddate"].dt.year
-    return df[["add_year"]]
+    return series.dt.year
 
 
-def create_month_feature(df):
+def create_month_feature(series: pd.Series):
     """
     Month that 311 request was made.
 
     Args:
-        df: pandas Dataframe with data
+        series: A pandas Series to be transformed
 
     Returns:
         pandas DataFrame with new column for month
     """
-    df["add_month"] = df["adddate"].dt.month
-    return df[["add_month"]]
+    return series.dt.month
 
 
-def create_quarter_feature(df):
+def create_quarter_feature(series: pd.Series):
     """
     Quarter that 311 request was made.
 
     Args:
-        df: pandas Dataframe with data
+        series: A pandas Series to be transformed
 
     Returns:
         pandas DataFrame with new column for quarter
     """
-    df["add_quarter"] = df["adddate"].dt.quarter
-    return df[["add_quarter"]]
+    return series.dt.quarter
 
 
-def create_day_feature(df):
+def create_day_feature(series: pd.Series):
     """
     Day of week that 311 request was made.
 
     Args:
-        df: pandas Dataframe with data
+        series: A pandas Series to be transformed
 
     Returns:
         pandas DataFrame with new column for day of week
     """
-    df["add_day"] = df["adddate"].dt.dayofweek
-    return df[["add_day"]]
+    return series.dt.dayofweek
 
 
 def is_business_hours(hour):
@@ -79,17 +75,18 @@ def is_business_day(day):
     return 1 if 0 <= day < 5 else 0
 
 
-def create_business_hours_feature(df):
+def create_business_hours_feature(adddate_series):
     """
     Whether 311 request was made during business hours.
 
     Args:
-        df: pandas Dataframe with data
+        adddate_series: A pandas Series with the `adddate` field
 
     Returns:
         pandas DataFrame with new column for whether request was made during business
         hours
     """
+    df = pd.DataFrame(adddate_series, columns=["adddate"])
     df["add_during_business_hours"] = df["adddate"].dt.hour.apply(is_business_hours)
     df["add_during_business_day"] = df["adddate"].dt.dayofweek.apply(is_business_day)
     df["add_during_business_hours"] = np.where(
@@ -100,28 +97,28 @@ def create_business_hours_feature(df):
     return df[["add_during_business_hours"]]
 
 
-def engineer_features():
+def engineer_features(cat_feature_list: List[str]):
     """
     Create a reusable ColumnTransformer that engineers features
 
     Args:
-        None
+        cat_feature_list: List of categorical features
 
     Returns:
         sklearn ColumnTransformer object
     """
     return ColumnTransformer(
         [
-            ("year_transformer", FunctionTransformer(create_year_feature), None),
-            ("month_transformer", FunctionTransformer(create_month_feature), None),
-            ("quarter_transformer", FunctionTransformer(create_quarter_feature), None),
-            ("day_transformer", FunctionTransformer(create_day_feature), None),
+            ("add_year", FunctionTransformer(create_year_feature), "adddate"),
+            ("add_month", FunctionTransformer(create_month_feature), "adddate"),
+            ("add_quarter", FunctionTransformer(create_quarter_feature), "adddate"),
+            ("add_day", FunctionTransformer(create_day_feature), "adddate"),
             (
-                "business_hour_transformer",
+                "add_during_business_hours",
                 FunctionTransformer(create_business_hours_feature),
-                None,
+                "adddate",
             ),
-            ("onehotencode", OneHotEncoder(handle_unknown="ignore"), None),
+            ("onehotencode", OneHotEncoder(handle_unknown="ignore"), cat_feature_list),
         ],
         remainder="passthrough",
     )
