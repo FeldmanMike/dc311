@@ -25,7 +25,7 @@ def create_year_feature(series: pd.Series):
     Returns:
         pandas DataFrame with new column for year
     """
-    return series.dt.year
+    return pd.DataFrame(series.dt.year)
 
 
 def create_month_feature(series: pd.Series):
@@ -38,7 +38,7 @@ def create_month_feature(series: pd.Series):
     Returns:
         pandas DataFrame with new column for month
     """
-    return series.dt.month
+    return pd.DataFrame(series.dt.month)
 
 
 def create_quarter_feature(series: pd.Series):
@@ -51,7 +51,7 @@ def create_quarter_feature(series: pd.Series):
     Returns:
         pandas DataFrame with new column for quarter
     """
-    return series.dt.quarter
+    return pd.DataFrame(series.dt.quarter)
 
 
 def create_day_feature(series: pd.Series):
@@ -64,7 +64,7 @@ def create_day_feature(series: pd.Series):
     Returns:
         pandas DataFrame with new column for day of week
     """
-    return series.dt.dayofweek
+    return pd.DataFrame(series.dt.dayofweek)
 
 
 def is_business_hours(hour):
@@ -99,7 +99,7 @@ def create_business_hours_feature(adddate_series):
 
 def engineer_features(cat_feature_list: List[str]):
     """
-    Create a reusable ColumnTransformer that engineers features
+    Create a reusable pipeline that engineers features
 
     Args:
         cat_feature_list: List of categorical features
@@ -107,20 +107,40 @@ def engineer_features(cat_feature_list: List[str]):
     Returns:
         sklearn ColumnTransformer object
     """
-    return ColumnTransformer(
+    return Pipeline(
         [
-            ("add_year", FunctionTransformer(create_year_feature), "adddate"),
-            ("add_month", FunctionTransformer(create_month_feature), "adddate"),
-            ("add_quarter", FunctionTransformer(create_quarter_feature), "adddate"),
-            ("add_day", FunctionTransformer(create_day_feature), "adddate"),
             (
-                "add_during_business_hours",
-                FunctionTransformer(create_business_hours_feature),
-                "adddate",
+                "add_new_columns",
+                ColumnTransformer(
+                    [
+                        (
+                            "add_year",
+                            FunctionTransformer(create_year_feature),
+                            "adddate",
+                        ),
+                        (
+                            "add_month",
+                            FunctionTransformer(create_month_feature),
+                            "adddate",
+                        ),
+                        (
+                            "add_quarter",
+                            FunctionTransformer(create_quarter_feature),
+                            "adddate",
+                        ),
+                        ("add_day", FunctionTransformer(create_day_feature), "adddate"),
+                        (
+                            "add_during_business_hours",
+                            FunctionTransformer(create_business_hours_feature),
+                            "adddate",
+                        ),
+                    ],
+                    remainder="passthrough",
+                    verbose_feature_names_out=False,
+                ),
             ),
-            ("onehotencode", OneHotEncoder(handle_unknown="ignore"), cat_feature_list),
-        ],
-        remainder="passthrough",
+            ("onehotencode", OneHotEncoder(handle_unknown="ignore")),
+        ]
     )
 
 

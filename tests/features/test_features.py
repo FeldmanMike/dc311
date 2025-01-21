@@ -2,6 +2,8 @@
 Test dc311/features/features.py
 """
 
+import logging
+
 import pandas as pd
 
 import dc311.features.features as feat
@@ -61,5 +63,6 @@ def test_engineer_features(time_dataframe):
     ]
     feature_tform = feat.engineer_features(feature_list).set_output(transform="pandas")
     feature_df = feature_tform.fit_transform(test_df)
+    logging.info(f"feature_df.columns: {feature_df.columns}")
     assert isinstance(feature_df, pd.DataFrame)
     assert len(feature_df) == 3
