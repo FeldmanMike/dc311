@@ -136,10 +136,13 @@ def engineer_features(cat_feature_list: List[str]):
                         ),
                     ],
                     remainder="passthrough",
-                    verbose_feature_names_out=False,
+                    verbose_feature_names_out=True,
                 ),
             ),
-            ("onehotencode", OneHotEncoder(handle_unknown="ignore")),
+            (
+                "onehotencode",
+                OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+            ),
         ]
     )
 
@@ -173,6 +176,5 @@ def create_feature_engineering_pipeline(feature_list: List[str]):
         [
             ("feature_selector", feature_selector),
             ("feature_engineering", feature_transformer),
-            ("drop", ColumnTransformer([("drop", "drop", "adddate")])),
         ]
     )
