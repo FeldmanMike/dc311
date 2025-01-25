@@ -97,12 +97,12 @@ def create_business_hours_feature(adddate_series):
     return df[["add_during_business_hours"]]
 
 
-def engineer_features(cat_feature_list: List[str]):
+def engineer_features():
     """
     Create a reusable pipeline that engineers features
 
     Args:
-        cat_feature_list: List of categorical features
+        None
 
     Returns:
         sklearn ColumnTransformer object

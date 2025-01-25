@@ -54,16 +54,21 @@ def test_engineer_features(time_dataframe):
     test_df = time_dataframe.drop(
         columns=["year", "month", "day", "hour", "minute", "second"]
     )
-    feature_list = [
-        "add_year",
-        "add_month",
-        "add_quarter",
-        "add_day",
-        "add_during_business_hours",
-    ]
-    feature_tform = feat.engineer_features(feature_list).set_output(transform="pandas")
+    feature_tform = feat.engineer_features().set_output(transform="pandas")
     feature_df = feature_tform.fit_transform(test_df)
     assert isinstance(feature_df, pd.DataFrame)
     assert len(feature_df) == 3
     assert feature_df.shape[1] == 14
     assert feature_df.isin([0, 1]).all().all()
+
+
+def test_select_features(time_dataframe):
+    test_df = time_dataframe.drop(
+        columns=["year", "month", "day", "hour", "minute", "second"]
+    )
+    test_df["drop_col"] = pd.Series(["drop1", "drop2", "drop3"])
+    feat_selector = feat.select_features(["adddate"]).set_output(transform="pandas")
+    feature_df = feat_selector.fit_transform(test_df)
+    assert feature_df.shape[1] == 1
+    assert feature_df.shape[0] == 3
+    assert list(feature_df.columns) == ["feature_selector__adddate"]
