@@ -1,5 +1,5 @@
 """
-Download datasets and transform them to CSVs
+Preprocess data before engineering features
 """
 
 import argparse

@@ -1,4 +1,4 @@
 #!/bin/bash
 
-python3 -m scripts.extract
-python3 -m scripts.preprocess
+python3 -m scripts.extract_data
+python3 -m scripts.preprocess_data
