@@ -54,6 +54,7 @@ def main():
     logger.info(f"Files to be preprocessed are: {raw_file_list}")
 
     out_file_dir = os.path.join(project_dir, "data", "interim")
+    df_list = []
     for filename in raw_file_list:
         raw_file = os.path.join(raw_file_dir, filename)
         logger.info(f"Reading {raw_file}...")
@@ -79,6 +80,14 @@ def main():
         )
         df.to_csv(out_file_path, index=False)
         logger.info(f"File successfully output to {out_file_path}.")
+        df_list.append(df)
+    logging.info("Stacking dataframes...")
+    df_all_years = pd.concat(df_list)
+    logging.info("Dataframes successfully stacked.")
+    out_file_path = os.path.join(out_file_dir, "dc_311_preprocessed_data.csv")
+    logger.info(f"Saving stacked dataframe as CSV to {out_file_path}.")
+    df_all_years.to_csv(out_file_path, index=False)
+    logger.info("CSV successfully saved.")
 
 
 if __name__ == "__main__":
