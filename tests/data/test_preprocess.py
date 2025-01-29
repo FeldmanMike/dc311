@@ -49,8 +49,8 @@ def test_convert_columns_to_datetime(datetime_conversion_df):
 def test_create_days_to_resolve_field(days_to_resolve_df):
     df = prep.create_days_to_resolve_field(days_to_resolve_df)
     assert "days_to_resolve" in df.columns
-    assert df["days_to_resolve"][0] == pd.Timedelta(days=2)
-    assert df["days_to_resolve"][1] == pd.Timedelta(days=3)
+    assert df["days_to_resolve"][0] == 2
+    assert df["days_to_resolve"][1] == 3
     assert pd.isna(df["days_to_resolve"][2])
 
 

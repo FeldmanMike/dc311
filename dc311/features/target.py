@@ -32,10 +32,11 @@ def create_target(
         task: Machine learning task to be completed. Either 'regression'
             or 'classification'
         clf_threshold: If task = 'classification', then choose the 0/1
-        threshold at which the target will be binarized
+        threshold at which the target will be binarized. Values below or equal
+        to this value will be set equal to zero; those higher will be set to 1.
 
     Returns:
-        pandas DataFrame that will include a target for the model called "target"
+        pandas DataFrame that includes only one column: a target for the model called "target"
     """
     task_values = set(["regression", "classification"])
     assert task in task_values, f"Value of task '{task}' not in {task_values}."
@@ -54,4 +55,4 @@ def create_target(
     df["target"] = pd.Series(
         pipe.fit_transform(df[[target_column]]).ravel(), name=target_column
     )
-    return df
+    return df[["target"]]

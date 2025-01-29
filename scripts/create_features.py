@@ -11,7 +11,7 @@ import pandas as pd
 import yaml
 
 from config.logging_config import setup_logging
-import dc311.features as feat
+import dc311.features.features as feat
 
 
 def main():
@@ -47,20 +47,29 @@ def main():
 
     out_file_dir = os.path.join(project_dir, "data", "processed")
     dc311_df = pd.read_csv(data_path)
+    dc311_df = dc311_df.set_index("objectid")
+    logger.info(f"Columns in dataframe read from {data_path} are: {dc311_df.columns}")
 
     feature_pipe = feat.create_feature_engineering_pipeline(config["features"])
+
+    logger.info("Creating features...")
     feature_df = feature_pipe.fit_transform(dc311_df)
+    logger.info("Features created successfully.")
 
-    # TODO - change preprocessing of days_to_resolve so that it is an integer
+    logger.info("Creating target...")
+    target_df = feat.create_target(
+        df=dc311_df,
+        target_column="days_to_resolve",
+        task="classification",
+        clf_threshold=4,
+    )
+    logger.info("Target created successfully.")
 
+    logger.info(f"Saving features and target to {out_file_dir}")
+    feature_df.to_csv(out_file_dir, "processed_features.csv")
+    target_df.to_csv(out_file_dir, "processed_target.csv")
+    logger.info("Save complete.")
 
-#    target_pipe = feat.create_target(
-#                    df=dc311_df
-#                    target_column=
-#                    task=
-#                    clf_threshold=
-#                  )
-#
 
 if __name__ == "__main__":
     main()
