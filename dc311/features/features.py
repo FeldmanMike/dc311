@@ -157,7 +157,10 @@ def select_features(feature_list: List[str]):
     Returns:
         sklearn ColumnTransformer object
     """
-    return ColumnTransformer([("feature_selector", "passthrough", feature_list)])
+    return ColumnTransformer(
+        [("feature_selector", "passthrough", feature_list)],
+        verbose_feature_names_out=False,
+    )
 
 
 def create_feature_engineering_pipeline(feature_list: List[str]):

@@ -71,4 +71,4 @@ def test_select_features(time_dataframe):
     feature_df = feat_selector.fit_transform(test_df)
     assert feature_df.shape[1] == 1
     assert feature_df.shape[0] == 3
-    assert list(feature_df.columns) == ["feature_selector__adddate"]
+    assert list(feature_df.columns) == ["adddate"]

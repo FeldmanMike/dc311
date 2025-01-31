@@ -12,6 +12,7 @@ import yaml
 
 from config.logging_config import setup_logging
 import dc311.features.features as feat
+import dc311.features.target as targ
 
 
 def main():
@@ -48,6 +49,7 @@ def main():
     out_file_dir = os.path.join(project_dir, "data", "processed")
     dc311_df = pd.read_csv(data_path)
     dc311_df = dc311_df.set_index("objectid")
+    dc311_df["adddate"] = pd.to_datetime(dc311_df["adddate"])
     logger.info(f"Columns in dataframe read from {data_path} are: {dc311_df.columns}")
 
     feature_pipe = feat.create_feature_engineering_pipeline(config["features"])
@@ -57,7 +59,7 @@ def main():
     logger.info("Features created successfully.")
 
     logger.info("Creating target...")
-    target_df = feat.create_target(
+    target_df = targ.create_target(
         df=dc311_df,
         target_column="days_to_resolve",
         task="classification",
@@ -66,8 +68,8 @@ def main():
     logger.info("Target created successfully.")
 
     logger.info(f"Saving features and target to {out_file_dir}")
-    feature_df.to_csv(out_file_dir, "processed_features.csv")
-    target_df.to_csv(out_file_dir, "processed_target.csv")
+    feature_df.to_csv(os.path.join(out_file_dir, "processed_features.csv"))
+    target_df.to_csv(os.path.join(out_file_dir, "processed_target.csv"))
     logger.info("Save complete.")
 
 
