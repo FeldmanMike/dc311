@@ -1,5 +1,7 @@
 import logging
 import logging.config
+import os
+from typing import Optional
 
 LOGGING_CONFIG = {
     "version": 1,
@@ -33,5 +35,11 @@ LOGGING_CONFIG = {
 }
 
 
-def setup_logging():
+def setup_logging(log_file: Optional[str] = None, log_level: Optional[str] = None):
+    if log_file:
+        log_file_path = os.path.join("logs", log_file)
+        LOGGING_CONFIG["handlers"]["file_handler"]["filename"] = log_file_path
+    if log_level:
+        LOGGING_CONFIG["handlers"]["file_handler"]["level"] = log_level
+        LOGGING_CONFIG["handlers"]["console_handler"]["level"] = log_level
     logging.config.dictConfig(LOGGING_CONFIG)

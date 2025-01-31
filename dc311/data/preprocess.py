@@ -87,6 +87,7 @@ def create_days_to_resolve_field(df: pd.DataFrame) -> pd.DataFrame:
         The pandas DataFrame, with new `days_to_resolve` column
     """
     df["days_to_resolve"] = df["resolutiondate"] - df["adddate"]
+    df["days_to_resolve"] = df["days_to_resolve"].dt.days
     return df
 
 

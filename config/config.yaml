@@ -17,3 +17,10 @@ api_query_parameters:
 # the max possible number of records.
 max_num_records: -999
 
+features:
+  - ward
+  - servicecode
+  - organizationacronym
+  - adddate
+
+
