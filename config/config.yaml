@@ -20,7 +20,13 @@ max_num_records: -999
 features:
   - ward
   - servicecode
-  - organizationacronym
   - adddate
 
-
+# Assign years to training, validation, and test sets
+train_year:
+  - 2021
+  - 2022
+validation_year:
+  - 2023
+test_year:
+  - 2024

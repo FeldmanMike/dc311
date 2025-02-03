@@ -3,7 +3,7 @@ Create features for model
 """
 
 import logging
-from typing import List
+from typing import List, Dict
 
 import numpy as np
 import pandas as pd
@@ -141,7 +141,7 @@ def engineer_features():
             ),
             (
                 "onehotencode",
-                OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+                OneHotEncoder(handle_unknown="warn", sparse_output=False),
             ),
         ]
     )
@@ -181,3 +181,26 @@ def create_feature_engineering_pipeline(feature_list: List[str]):
             ("feature_engineering", feature_transformer),
         ]
     )
+
+
+def get_dataset_indices(
+    train_df: pd.DataFrame, validation_df: pd.DataFrame, test_df: pd.DataFrame
+) -> Dict:
+    """
+    Assign indices associated with training, validation, and test sets to a
+    dictionary.
+
+    Args:
+        train_df: DataFrame with training data
+        validation_df: DataFrame with validation data
+        test_df: DataFrame with test data
+
+    Returns:
+        Dictionary where the keys are "train", "validation", and "test", and the
+        values are lists of indices associated with each dataset
+    """
+    data_dict = {}
+    data_dict["train"] = train_df.index.tolist()
+    data_dict["validation"] = validation_df.index.tolist()
+    data_dict["test"] = test_df.index.tolist()
+    return data_dict
