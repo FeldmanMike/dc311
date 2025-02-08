@@ -141,7 +141,7 @@ def engineer_features():
             ),
             (
                 "onehotencode",
-                OneHotEncoder(handle_unknown="warn", sparse_output=False),
+                OneHotEncoder(handle_unknown="ignore", sparse_output=False),
             ),
         ]
     )

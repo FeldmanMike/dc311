@@ -51,7 +51,6 @@ def main():
     dc311_df = pd.read_csv(data_path)
     dc311_df = dc311_df.set_index("objectid")
     dc311_df["adddate"] = pd.to_datetime(dc311_df["adddate"])
-    logger.info(f"Columns in dataframe read from {data_path} are: {dc311_df.columns}")
 
     logger.info("Splitting data into training, validaton, and test sets...")
     train_df = dc311_df[dc311_df["adddate"].dt.year.isin(config["train_year"])]
@@ -81,6 +80,7 @@ def main():
         clf_threshold=4,
     )
     logger.info("Target created successfully.")
+    logger.info(f"Target balance: {target_df['target'].value_counts()}")
 
     logger.info("Getting dataset indices...")
     dataset_indices = feat.get_dataset_indices(train_df, validation_df, test_df)

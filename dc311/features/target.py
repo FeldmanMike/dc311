@@ -8,14 +8,9 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import Binarizer, FunctionTransformer
+from sklearn.preprocessing import Binarizer
 
 logger = logging.getLogger(__name__)
-
-
-def to_numeric(X):
-    return X.apply(pd.to_numeric, errors="coerce")
 
 
 def create_target(
@@ -45,14 +40,12 @@ def create_target(
         df["target"] = df[target_column].replace("", np.nan)
         return df[df["target"].notna()]
 
-    pipe = Pipeline(
-        [
-            ("to_numeric", FunctionTransformer(to_numeric)),
-            ("imputer", SimpleImputer(strategy="constant", fill_value=999999)),
-            ("binarizer", Binarizer(threshold=clf_threshold)),
-        ]
-    )
-    df["target"] = pd.Series(
-        pipe.fit_transform(df[[target_column]]).ravel(), name=target_column
-    )
+    df[target_column] = pd.to_numeric(df[target_column], errors="coerce")
+
+    imputer = SimpleImputer(strategy="constant", fill_value=999999)
+    df[["target"]] = imputer.fit_transform(df[[target_column]])
+
+    binarizer = Binarizer(threshold=clf_threshold)
+    df[["target"]] = binarizer.fit_transform(df[["target"]])
+
     return df[["target"]]
