@@ -118,6 +118,7 @@ def ward_df():
             "Ward 8",
             "",
             np.nan,
+            "Null",
         ]
     }
     return pd.DataFrame(data_dict)

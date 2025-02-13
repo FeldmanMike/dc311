@@ -114,11 +114,6 @@ def engineer_features():
                 ColumnTransformer(
                     [
                         (
-                            "add_year",
-                            FunctionTransformer(create_year_feature),
-                            "adddate",
-                        ),
-                        (
                             "add_month",
                             FunctionTransformer(create_month_feature),
                             "adddate",

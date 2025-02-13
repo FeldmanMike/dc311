@@ -75,4 +75,5 @@ def test_process_ward_field(ward_df):
         8,
         0,
         0,
+        0,
     ]
