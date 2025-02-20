@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def split_data(
-    feature_df: pd.DataFrame, target_df: pd.Dataframe, data_split_dict: Dict
+    feature_df: pd.DataFrame, target_df: pd.DataFrame, data_split_dict: Dict
 ) -> Tuple:
     """
     Split data into train and test sets.
@@ -31,9 +31,9 @@ def split_data(
         test targets
     """
     X_train = feature_df.loc[data_split_dict["train"]]
-    y_train = target_df.loc[data_split_dict["train"]]
+    y_train = target_df.loc[data_split_dict["train"]]["target"]
     X_test = feature_df.loc[data_split_dict["validation"]]
-    y_test = target_df.loc[data_split_dict["validation"]]
+    y_test = target_df.loc[data_split_dict["validation"]]["target"]
     return X_train, y_train, X_test, y_test
 
 
@@ -53,5 +53,5 @@ def objective_logreg(
     logreg_c = trial.suggest_float("logrec_c", 1e-10, 1e10, log=True)
     clf = LogisticRegression(C=logreg_c, random_state=0)
     clf.fit(X_train, y_train)
-    y_proba = clf.predict_proba(X_test)
+    y_proba = clf.predict_proba(X_test)[:, 1]
     return brier_score_loss(y_test, y_proba)
