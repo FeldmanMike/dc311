@@ -8,6 +8,7 @@ import logging
 import os
 
 from dotenv import load_dotenv
+import mlflow
 import pandas as pd
 import optuna
 import yaml
@@ -17,7 +18,7 @@ from dc311.modeling import train_model as train
 
 
 def main():
-    setup_logging()
+    setup_logging("model_training.log")
     logger = logging.getLogger(__name__)
 
     load_dotenv()
@@ -58,6 +59,7 @@ def main():
         logger.info("Data loaded.")
 
         logger.info("Starting trials...")
+        optuna.logging.enable_propagation()
         study = optuna.create_study(direction="minimize")
         study.optimize(
             lambda trial: train.objective_logreg(
