@@ -63,7 +63,12 @@ def main():
         study = optuna.create_study(direction="minimize")
         study.optimize(
             lambda trial: train.objective_logreg(
-                trial, feature_df, target_df, data_split_dict
+                trial=trial,
+                tracking_uri=config["tracking_uri"],
+                experiment_name=config["experiment_name"],
+                feature_df=feature_df,
+                target_df=target_df,
+                data_split_dict=data_split_dict,
             ),
             n_trials=5,
         )

@@ -38,7 +38,7 @@ def main():
         with open(config_path, "r") as file:
             config = yaml.safe_load(file)
 
-        logger.info("Fetching name of directory with data to be preprocessed...")
+        logger.debug("Fetching name of directory with data to be preprocessed...")
         if args.input:
             data_path = args.input
         else:
@@ -46,13 +46,13 @@ def main():
             data_path = os.path.join(
                 project_dir, "data", "interim", "dc_311_preprocessed_data.csv"
             )
-        logger.info(f"Data to preprocess is saved in directory: {data_path}")
+        logger.debug(f"Data to preprocess is saved in directory: {data_path}")
 
         out_file_dir = os.path.join(project_dir, "data", "processed")
         if os.path.exists(
             os.path.join(out_file_dir, "processed_features.csv")
         ) and os.path.exists(os.path.join(out_file_dir, "processed_target.csv")):
-            logger.info("Features and target already created!")
+            logger.debug("Features and target already created!")
         else:
             dc311_df = pd.read_csv(data_path)
             dc311_df = dc311_df.set_index("objectid")

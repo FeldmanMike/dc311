@@ -40,13 +40,29 @@ def split_data(
 
 def objective_logreg(
     trial: optuna.trial.Trial,
+    tracking_uri: str,
+    experiment_name: str,
     feature_df: pd.DataFrame,
     target_df: pd.DataFrame,
     data_split_dict: Dict,
 ) -> float:
     """
     Define objective function to maximize logistic regression model
+
+    Args:
+        trial: optuna Trial object on which to optimize
+        tracking_uri: mlflow tracking uri that defines where logged data will be stored
+        experiment_name: Name of experiment associated with mlflow runs
+        feature_df: DataFrame of features for model training run
+        target_df: DataFrame with targets associated with features
+        data_split_dict: Dictionary that specifies indices for samples associated with
+            train and test sets
+
+    Returns:
+        Brier score loss associated with training run
     """
+    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_experiment(experiment_name)
     with mlflow.start_run(nested=True):
         X_train, y_train, X_test, y_test = split_data(
             feature_df, target_df, data_split_dict

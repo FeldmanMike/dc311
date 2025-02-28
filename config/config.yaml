@@ -30,3 +30,7 @@ validation_year:
   - 2023
 test_year:
   - 2024
+
+# Modeling hyperparameters
+tracking_uri: data/
+experiment_name: testing

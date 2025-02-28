@@ -68,7 +68,7 @@ def main():
                     endpoints[year], copy.deepcopy(query_params), json_filename
                 )
             else:
-                logger.info(
+                logger.debug(
                     f"Dataset for {year} already downloaded to {json_filename}. Skipping "
                     "download..."
                 )
@@ -78,7 +78,7 @@ def main():
                 logger.info(f"Transforming {json_filename} to CSV at {csv_filename}...")
                 transform_json_to_csv(json_filename, csv_filename)
             else:
-                logger.info(
+                logger.debug(
                     f"File {csv_filename} already exists. Skipping data transformation..."
                 )
     except Exception as e:

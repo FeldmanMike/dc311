@@ -39,25 +39,25 @@ def main():
     args = parser.parse_args()
 
     try:
-        logger.info("Fetching name of directory with data to be preprocessed...")
+        logger.debug("Fetching name of directory with data to be preprocessed...")
         if args.directory:
             raw_file_dir = args.directory
         else:
             project_dir = os.path.dirname(os.path.dirname(__file__))
             raw_file_dir = os.path.join(project_dir, "data", "raw")
-        logger.info(f"Data to preprocess is saved in directory: {raw_file_dir}")
+        logger.debug(f"Data to preprocess is saved in directory: {raw_file_dir}")
 
-        logger.info("Fetching names of files to be preprocessed...")
+        logger.debug("Fetching names of files to be preprocessed...")
         if args.files:
             raw_file_list = args.files
         else:
             raw_file_list = [f for f in os.listdir(raw_file_dir) if f.endswith(".csv")]
-        logger.info(f"Files to be preprocessed are: {raw_file_list}")
+        logger.debug(f"Files to be preprocessed are: {raw_file_list}")
 
         outfile_dir = os.path.join(project_dir, "data", "interim")
         final_outfile_path = os.path.join(outfile_dir, "dc_311_preprocessed_data.csv")
         if os.path.exists(final_outfile_path):
-            logger.info(f"{final_outfile_path} exists! Bypassing preprocessing.")
+            logger.debug(f"{final_outfile_path} exists! Bypassing preprocessing.")
         else:
             df_list = []
             for filename in raw_file_list:
