@@ -3,11 +3,12 @@ Functionality to train model using optuna
 """
 
 import logging
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 import mlflow
 import optuna
 import pandas as pd
+from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import brier_score_loss, roc_auc_score, average_precision_score
 
@@ -38,13 +39,15 @@ def split_data(
     return X_train, y_train, X_test, y_test
 
 
-def objective_logreg(
+def objective(
     trial: optuna.trial.Trial,
     tracking_uri: str,
     experiment_name: str,
     feature_df: pd.DataFrame,
     target_df: pd.DataFrame,
     data_split_dict: Dict,
+    model_type: Optional[bool] = "logistic",
+    pca: Optional[bool] = False,
 ) -> float:
     """
     Define objective function to maximize logistic regression model
@@ -57,6 +60,10 @@ def objective_logreg(
         target_df: DataFrame with targets associated with features
         data_split_dict: Dictionary that specifies indices for samples associated with
             train and test sets
+        model_type: {"logistic"}
+            Type of model to train
+        pca: Whether to apply principal component analysis to the feature data before
+            passing the data to the classification model object
 
     Returns:
         Brier score loss associated with training run
@@ -71,8 +78,18 @@ def objective_logreg(
         params["logreg_c"] = trial.suggest_float("logrec_c", 1e-10, 1e10, log=True)
         params["objective"] = "clf:min_brier_score"
 
+        if pca:
+            params["pca_n_components"] = trial.suggest_int(
+                "pca_n_components", 1, len(X_train.columns)
+            )
+            pca = PCA(n_components=params["pca_n_components"], random_state=0)
+            X_train = pca.fit_transform(X_train)
+
         clf = LogisticRegression(C=params["logreg_c"], random_state=0)
         clf.fit(X_train, y_train)
+
+        if pca:
+            X_test = pca.transform(X_test)
         y_proba = clf.predict_proba(X_test)[:, 1]
 
         brier_score = brier_score_loss(y_test, y_proba)
@@ -80,7 +97,6 @@ def objective_logreg(
         average_precision = average_precision_score(y_test, y_proba)
 
         mlflow.log_params(params)
-        mlflow.log_metric(brier_score_loss)
         mlflow.log_metrics(
             {
                 "brier_score_loss": brier_score,
@@ -88,4 +104,4 @@ def objective_logreg(
                 "average_precision_score": average_precision,
             }
         )
-        return brier_score_loss
+        return brier_score

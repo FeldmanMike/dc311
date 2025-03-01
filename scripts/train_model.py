@@ -8,7 +8,6 @@ import logging
 import os
 
 from dotenv import load_dotenv
-import mlflow
 import pandas as pd
 import optuna
 import yaml
@@ -39,13 +38,13 @@ def main():
         with open(config_path, "r") as file:
             config = yaml.safe_load(file)
 
-        logger.info("Fetching name of directory with processed data...")
+        logger.debug("Fetching name of directory with processed data...")
         if args.input:
             data_dir = args.input
         else:
             project_dir = os.path.dirname(os.path.dirname(__file__))
             data_dir = os.path.join(project_dir, "data", "processed")
-        logger.info(f"Processed data is saved in directory: {data_dir}")
+        logger.debug(f"Processed data is saved in directory: {data_dir}")
 
         logger.info("Loading features, targets, and data split indices...")
         feature_df = pd.read_csv(
@@ -62,15 +61,16 @@ def main():
         optuna.logging.enable_propagation()
         study = optuna.create_study(direction="minimize")
         study.optimize(
-            lambda trial: train.objective_logreg(
+            lambda trial: train.objective(
                 trial=trial,
                 tracking_uri=config["tracking_uri"],
                 experiment_name=config["experiment_name"],
                 feature_df=feature_df,
                 target_df=target_df,
                 data_split_dict=data_split_dict,
+                pca=config["pca"],
             ),
-            n_trials=5,
+            n_trials=config["n_trials"],
         )
         logger.info("Trials complete!")
     except Exception as e:

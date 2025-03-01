@@ -32,5 +32,7 @@ test_year:
   - 2024
 
 # Modeling hyperparameters
-tracking_uri: data/
+tracking_uri: data/mlruns
 experiment_name: testing
+n_trials: 6
+pca: true
