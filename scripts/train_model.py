@@ -59,6 +59,7 @@ def main():
 
         logger.info("Starting trials...")
         optuna.logging.enable_propagation()
+
         study = optuna.create_study(direction="minimize")
         study.optimize(
             lambda trial: train.objective(
@@ -73,6 +74,7 @@ def main():
             n_trials=config["n_trials"],
         )
         logger.info("Trials complete!")
+
     except Exception as e:
         logger.exception(f"There was an error: {e}")
         raise

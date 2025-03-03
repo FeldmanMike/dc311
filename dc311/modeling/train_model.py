@@ -88,10 +88,17 @@ def objective(
         clf = LogisticRegression(C=params["logreg_c"], random_state=0)
         clf.fit(X_train, y_train)
 
+        # Get train set metrics
+        y_proba = clf.predict_proba(X_train)[:, 1]
+        train_brier_score = brier_score_loss(y_train, y_proba)
+        train_roc_auc = roc_auc_score(y_train, y_proba)
+        train_average_precision = average_precision_score(y_train, y_proba)
+
         if pca:
             X_test = pca.transform(X_test)
         y_proba = clf.predict_proba(X_test)[:, 1]
 
+        # Get test set metrics
         brier_score = brier_score_loss(y_test, y_proba)
         roc_auc = roc_auc_score(y_test, y_proba)
         average_precision = average_precision_score(y_test, y_proba)
@@ -102,6 +109,9 @@ def objective(
                 "brier_score_loss": brier_score,
                 "roc_auc_score": roc_auc,
                 "average_precision_score": average_precision,
+                "train_set_brier_score_loss": train_brier_score,
+                "train_set_roc_auc_score": train_roc_auc,
+                "train_set_average_precision_score": train_average_precision,
             }
         )
         return brier_score
