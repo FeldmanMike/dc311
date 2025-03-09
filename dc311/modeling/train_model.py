@@ -11,6 +11,7 @@ import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import brier_score_loss, roc_auc_score, average_precision_score
+from sklearn.pipeline import Pipeline
 
 
 logger = logging.getLogger(__name__)
@@ -39,6 +40,44 @@ def split_data(
     return X_train, y_train, X_test, y_test
 
 
+def train_model(
+    X: pd.DataFrame,
+    y: pd.DataFrame,
+    params: Dict,
+    model_type: Optional[str] = "logistic",
+    pca: Optional[bool] = False,
+):
+    """
+    Fit an sklearn model pipeline object.
+
+    Args:
+        X: DataFrame of features
+        y: DataFrame with targets corresponding to samples in X
+        params: Dictionary of model hyperparameters
+        model_type: {"logistic"}
+            Type of model to be trained
+        pca: Whether to apply principal component analysis to the feature data before
+            passing the data to the classification model object
+
+    Returns:
+        Fit sklearn model pipeline object
+    """
+    steps = []
+    if pca:
+        steps.append(
+            ("pca", PCA(n_components=params["pca_n_components"], random_state=0))
+        )
+
+    if model_type == "logistic":
+        steps.append(
+            ("classifier", LogisticRegression(C=params["logreg_c"], random_state=0))
+        )
+
+    model_pipeline = Pipeline(steps)
+    model_pipeline.fit(X, y)
+    return model_pipeline
+
+
 def objective(
     trial: optuna.trial.Trial,
     tracking_uri: str,
@@ -46,7 +85,7 @@ def objective(
     feature_df: pd.DataFrame,
     target_df: pd.DataFrame,
     data_split_dict: Dict,
-    model_type: Optional[bool] = "logistic",
+    model_type: Optional[str] = "logistic",
     pca: Optional[bool] = False,
 ) -> float:
     """
@@ -82,21 +121,18 @@ def objective(
             params["pca_n_components"] = trial.suggest_int(
                 "pca_n_components", 1, len(X_train.columns)
             )
-            pca = PCA(n_components=params["pca_n_components"], random_state=0)
-            X_train = pca.fit_transform(X_train)
 
-        clf = LogisticRegression(C=params["logreg_c"], random_state=0)
-        clf.fit(X_train, y_train)
+        model = train_model(
+            X=X_train, y=y_train, params=params, model_type=model_type, pca=pca
+        )
 
         # Get train set metrics
-        y_proba = clf.predict_proba(X_train)[:, 1]
+        y_proba = model.predict_proba(X_train)[:, 1]
         train_brier_score = brier_score_loss(y_train, y_proba)
         train_roc_auc = roc_auc_score(y_train, y_proba)
         train_average_precision = average_precision_score(y_train, y_proba)
 
-        if pca:
-            X_test = pca.transform(X_test)
-        y_proba = clf.predict_proba(X_test)[:, 1]
+        y_proba = model.predict_proba(X_test)[:, 1]
 
         # Get test set metrics
         brier_score = brier_score_loss(y_test, y_proba)

@@ -34,5 +34,5 @@ test_year:
 # Modeling hyperparameters
 tracking_uri: data/mlruns
 experiment_name: testing
-n_trials: 6
+n_trials: 5
 pca: true
