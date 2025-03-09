@@ -8,6 +8,8 @@ import logging
 import os
 
 from dotenv import load_dotenv
+import mlflow
+import mlflow.sklearn
 import pandas as pd
 import optuna
 import yaml
@@ -60,20 +62,44 @@ def main():
         logger.info("Starting trials...")
         optuna.logging.enable_propagation()
 
-        study = optuna.create_study(direction="minimize")
-        study.optimize(
-            lambda trial: train.objective(
-                trial=trial,
-                tracking_uri=config["tracking_uri"],
-                experiment_name=config["experiment_name"],
+        mlflow.set_experiment(config["experiment_name"])
+        mlflow.set_tracking_uri(config["tracking_uri"])
+        with mlflow.start_run():
+            study = optuna.create_study(direction="minimize")
+            study.optimize(
+                lambda trial: train.objective(
+                    trial=trial,
+                    tracking_uri=config["tracking_uri"],
+                    experiment_name=config["experiment_name"],
+                    feature_df=feature_df,
+                    target_df=target_df,
+                    data_split_dict=data_split_dict,
+                    model_type=config["model_type"],
+                    pca=config["pca"],
+                ),
+                n_trials=config["n_trials"],
+            )
+            logger.info("Trials complete!")
+            logger.info("Getting best model...")
+            best_params = study.best_trial.params
+            logger.info(f"Best params are: {best_params}")
+            X_train, y_train, _, _ = train.split_data(
                 feature_df=feature_df,
                 target_df=target_df,
                 data_split_dict=data_split_dict,
+            )
+            best_model = train.train_model(
+                X=X_train,
+                y=y_train,
+                params=best_params,
+                model_type=config["model_type"],
                 pca=config["pca"],
-            ),
-            n_trials=config["n_trials"],
-        )
-        logger.info("Trials complete!")
+            )
+            logger.info("Logging best model...")
+            mlflow.sklearn.log_model(best_model, "best_model")
+            mlflow.log_params(best_params)
+            mlflow.log_metric("best_brier_score", study.best_trial.value)
+            logger.info("Model logging complete!")
 
     except Exception as e:
         logger.exception(f"There was an error: {e}")

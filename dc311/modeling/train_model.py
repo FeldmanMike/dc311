@@ -114,7 +114,7 @@ def objective(
             feature_df, target_df, data_split_dict
         )
         params = {}
-        params["logreg_c"] = trial.suggest_float("logrec_c", 1e-10, 1e10, log=True)
+        params["logreg_c"] = trial.suggest_float("logreg_c", 1e-10, 1e10, log=True)
         params["objective"] = "clf:min_brier_score"
 
         if pca:
