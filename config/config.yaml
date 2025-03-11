@@ -33,7 +33,7 @@ test_year:
 
 # Modeling hyperparameters
 tracking_uri: data/mlruns
-experiment_name: nested_test_2
+experiment_name: experiment_testing
 n_trials: 4
 model_type: logistic
 pca: true

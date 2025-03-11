@@ -2,6 +2,7 @@
 Functionality to train model using optuna
 """
 
+from datetime import datetime
 import logging
 from typing import Dict, Optional, Tuple
 
@@ -80,8 +81,6 @@ def train_model(
 
 def objective(
     trial: optuna.trial.Trial,
-    tracking_uri: str,
-    experiment_name: str,
     feature_df: pd.DataFrame,
     target_df: pd.DataFrame,
     data_split_dict: Dict,
@@ -107,9 +106,10 @@ def objective(
     Returns:
         Brier score loss associated with training run
     """
-    mlflow.set_tracking_uri(tracking_uri)
-    mlflow.set_experiment(experiment_name)
-    with mlflow.start_run(nested=True):
+    child_run_name = (
+        f"child_run_{trial.number}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    )
+    with mlflow.start_run(nested=True, run_name=child_run_name):
         X_train, y_train, X_test, y_test = split_data(
             feature_df, target_df, data_split_dict
         )
@@ -126,12 +126,6 @@ def objective(
             X=X_train, y=y_train, params=params, model_type=model_type, pca=pca
         )
 
-        # Get train set metrics
-        y_proba = model.predict_proba(X_train)[:, 1]
-        train_brier_score = brier_score_loss(y_train, y_proba)
-        train_roc_auc = roc_auc_score(y_train, y_proba)
-        train_average_precision = average_precision_score(y_train, y_proba)
-
         y_proba = model.predict_proba(X_test)[:, 1]
 
         # Get test set metrics
@@ -145,9 +139,6 @@ def objective(
                 "brier_score_loss": brier_score,
                 "roc_auc_score": roc_auc,
                 "average_precision_score": average_precision,
-                "train_set_brier_score_loss": train_brier_score,
-                "train_set_roc_auc_score": train_roc_auc,
-                "train_set_average_precision_score": train_average_precision,
             }
         )
         return brier_score

@@ -3,6 +3,7 @@ Engineer features and target
 """
 
 import argparse
+from datetime import datetime
 import json
 import logging
 import os
@@ -64,13 +65,12 @@ def main():
 
         mlflow.set_experiment(config["experiment_name"])
         mlflow.set_tracking_uri(config["tracking_uri"])
-        with mlflow.start_run():
+        parent_run_name = f"parent_run_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        with mlflow.start_run(nested=True, run_name=parent_run_name):
             study = optuna.create_study(direction="minimize")
             study.optimize(
                 lambda trial: train.objective(
                     trial=trial,
-                    tracking_uri=config["tracking_uri"],
-                    experiment_name=config["experiment_name"],
                     feature_df=feature_df,
                     target_df=target_df,
                     data_split_dict=data_split_dict,
