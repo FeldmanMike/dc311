@@ -63,10 +63,10 @@ def main():
         logger.info("Starting trials...")
         optuna.logging.enable_propagation()
 
-        mlflow.set_experiment(config["experiment_name"])
         mlflow.set_tracking_uri(config["tracking_uri"])
+        mlflow.set_experiment(config["experiment_name"])
         parent_run_name = f"parent_run_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        with mlflow.start_run(nested=True, run_name=parent_run_name):
+        with mlflow.start_run(run_name=parent_run_name):
             study = optuna.create_study(direction="minimize")
             study.optimize(
                 lambda trial: train.objective(
