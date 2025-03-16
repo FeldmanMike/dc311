@@ -47,6 +47,7 @@ def train_model(
     params: Dict,
     model_type: Optional[str] = "logistic",
     pca: Optional[bool] = False,
+    random_seed: Optional[int] = 0,
 ):
     """
     Fit an sklearn model pipeline object.
@@ -59,6 +60,7 @@ def train_model(
             Type of model to be trained
         pca: Whether to apply principal component analysis to the feature data before
             passing the data to the classification model object
+        random_seed: Seed provided to ensure reproducibility
 
     Returns:
         Fit sklearn model pipeline object
@@ -66,12 +68,18 @@ def train_model(
     steps = []
     if pca:
         steps.append(
-            ("pca", PCA(n_components=params["pca_n_components"], random_state=0))
+            (
+                "pca",
+                PCA(n_components=params["pca_n_components"], random_state=random_seed),
+            )
         )
 
     if model_type == "logistic":
         steps.append(
-            ("classifier", LogisticRegression(C=params["logreg_c"], random_state=0))
+            (
+                "classifier",
+                LogisticRegression(C=params["logreg_c"], random_state=random_seed),
+            )
         )
 
     model_pipeline = Pipeline(steps)
@@ -87,6 +95,7 @@ def objective(
     model_type: Optional[str] = "logistic",
     pca: Optional[bool] = False,
     ranges: Optional[Dict] = None,
+    random_seed: Optional[int] = 0,
 ) -> float:
     """
     Define objective function to maximize logistic regression model
@@ -105,6 +114,7 @@ def objective(
             passing the data to the classification model object
         ranges: Dictionary including ranges for hyperparameters for optuna to sample
             from
+        random_seed: Seed provided to ensure reproducibility
 
     Returns:
         Brier score loss associated with training run
@@ -131,7 +141,12 @@ def objective(
             )
 
         model = train_model(
-            X=X_train, y=y_train, params=params, model_type=model_type, pca=pca
+            X=X_train,
+            y=y_train,
+            params=params,
+            model_type=model_type,
+            pca=pca,
+            random_seed=random_seed,
         )
 
         y_proba = model.predict_proba(X_test)[:, 1]

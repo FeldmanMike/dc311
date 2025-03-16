@@ -77,6 +77,7 @@ def main():
                     model_type=config["model_type"],
                     pca=config["pca"],
                     ranges=config["ranges"],
+                    random_seed=config["random_seed"],
                 ),
                 n_trials=config["n_trials"],
             )
@@ -95,6 +96,7 @@ def main():
                 params=best_params,
                 model_type=config["model_type"],
                 pca=config["pca"],
+                random_seed=config["random_seed"],
             )
             logger.info("Logging best model...")
             mlflow.sklearn.log_model(best_model, "best_model")

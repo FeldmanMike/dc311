@@ -37,6 +37,7 @@ experiment_name: experiment_testing
 n_trials: 3
 model_type: logistic
 pca: true
+random_seed: 123
 ranges:
   logreg_c:
     min: 1.0e-10
