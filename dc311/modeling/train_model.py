@@ -98,7 +98,7 @@ def objective(
     random_seed: Optional[int] = 0,
 ) -> float:
     """
-    Define objective function to maximize logistic regression model
+    Define objective function to optimize model
 
     Args:
         trial: optuna Trial object on which to optimize
@@ -150,8 +150,6 @@ def objective(
         )
 
         y_proba = model.predict_proba(X_test)[:, 1]
-
-        # Get test set metrics
         brier_score = brier_score_loss(y_test, y_proba)
         roc_auc = roc_auc_score(y_test, y_proba)
         average_precision = average_precision_score(y_test, y_proba)
