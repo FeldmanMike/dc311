@@ -76,6 +76,7 @@ def main():
                     data_split_dict=data_split_dict,
                     model_type=config["model_type"],
                     pca=config["pca"],
+                    ranges=config["ranges"],
                 ),
                 n_trials=config["n_trials"],
             )

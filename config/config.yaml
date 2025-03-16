@@ -34,6 +34,12 @@ test_year:
 # Modeling hyperparameters
 tracking_uri: data/mlruns
 experiment_name: experiment_testing
-n_trials: 4
+n_trials: 3
 model_type: logistic
 pca: true
+ranges:
+  logreg_c:
+    min: 1.0e-10
+    max: 1.0e10
+  pca_n_components:
+    min: 1

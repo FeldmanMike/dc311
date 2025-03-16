@@ -86,6 +86,7 @@ def objective(
     data_split_dict: Dict,
     model_type: Optional[str] = "logistic",
     pca: Optional[bool] = False,
+    ranges: Optional[Dict] = None,
 ) -> float:
     """
     Define objective function to maximize logistic regression model
@@ -102,6 +103,8 @@ def objective(
             Type of model to train
         pca: Whether to apply principal component analysis to the feature data before
             passing the data to the classification model object
+        ranges: Dictionary including ranges for hyperparameters for optuna to sample
+            from
 
     Returns:
         Brier score loss associated with training run
@@ -114,12 +117,17 @@ def objective(
             feature_df, target_df, data_split_dict
         )
         params = {}
-        params["logreg_c"] = trial.suggest_float("logreg_c", 1e-10, 1e10, log=True)
-        params["objective"] = "clf:min_brier_score"
+
+        logreg_range = ranges["logreg_c"]
+        params["logreg_c"] = trial.suggest_float(
+            "logreg_c", float(logreg_range["min"]), float(logreg_range["max"]), log=True
+        )
 
         if pca:
             params["pca_n_components"] = trial.suggest_int(
-                "pca_n_components", 1, len(X_train.columns)
+                "pca_n_components",
+                float(ranges["pca_n_components"]["min"]),
+                len(X_train.columns),
             )
 
         model = train_model(
@@ -133,6 +141,7 @@ def objective(
         roc_auc = roc_auc_score(y_test, y_proba)
         average_precision = average_precision_score(y_test, y_proba)
 
+        params["objective"] = "clf:min_brier_score"
         mlflow.log_params(params)
         mlflow.log_metrics(
             {
