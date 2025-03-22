@@ -66,7 +66,7 @@ def main():
         mlflow.set_tracking_uri(config["tracking_uri"])
         mlflow.set_experiment(config["experiment_name"])
         parent_run_name = f"parent_run_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        with mlflow.start_run(run_name=parent_run_name):
+        with mlflow.start_run(run_name=parent_run_name) as run:
             study = optuna.create_study(direction="minimize")
             study.optimize(
                 lambda trial: train.objective(
@@ -103,7 +103,9 @@ def main():
             mlflow.log_params(best_params)
             mlflow.log_metric("best_brier_score", study.best_trial.value)
             logger.info("Model logging complete!")
-
+            logger.info("Load best model with following call:")
+            link_to_model = f"{config['tracking_uri']}/{run.info.experiment_id}/{run.info.run_id}/artifacts/best_model"
+            logger.info(f"mlflow.sklearn.load_model('{link_to_model}')")
     except Exception as e:
         logger.exception(f"There was an error: {e}")
         raise
