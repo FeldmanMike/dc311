@@ -35,8 +35,8 @@ test_year:
 tracking_uri: data/mlruns
 experiment_name: experiment_testing
 n_trials: 3
-model_type: logistic
-pca: true
+model_type: xgboost     # logistic or xgboost
+pca: true     # true or false
 random_seed: 123
 ranges:
   logreg_c:
@@ -44,3 +44,12 @@ ranges:
     max: 1.0e10
   pca_n_components:
     min: 1
+  xgb_max_depth:
+    min: 3
+    max: 10
+  xgb_n_estimators:
+    min: 50
+    max: 1000
+  xgb_learning_rate:
+    min: 1.0e-4
+    max: 0.3
