@@ -67,7 +67,8 @@ def main():
         mlflow.set_experiment(config["experiment_name"])
         parent_run_name = f"parent_run_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         with mlflow.start_run(run_name=parent_run_name) as run:
-            study = optuna.create_study(direction="minimize")
+            sampler = optuna.samplers.TPESampler(seed=config["random_seed"])
+            study = optuna.create_study(direction="minimize", sampler=sampler)
             study.optimize(
                 lambda trial: train.objective(
                     trial=trial,

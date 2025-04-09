@@ -152,15 +152,17 @@ def objective(
             n_estimators_range = ranges["xgb_n_estimators"]
             lr_range = ranges["xgb_learning_rate"]
             params["xgb_max_depth"] = trial.suggest_int(
-                "max_depth", int(max_depth_range["min"]), int(max_depth_range["max"])
+                "xgb_max_depth",
+                int(max_depth_range["min"]),
+                int(max_depth_range["max"]),
             )
             params["xgb_n_estimators"] = trial.suggest_int(
-                "n_estimators",
+                "xgb_n_estimators",
                 int(n_estimators_range["min"]),
                 int(n_estimators_range["max"]),
             )
             params["xgb_learning_rate"] = trial.suggest_float(
-                "learning_rate",
+                "xgb_learning_rate",
                 float(lr_range["min"]),
                 float(lr_range["max"]),
                 log=True,
