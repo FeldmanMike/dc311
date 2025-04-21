@@ -22,6 +22,10 @@ features:
   - servicecode
   - adddate
 
+# Target values less than or equal to this value are set to 0
+# Greater than this value are set to 1
+target_threshold: 21
+
 # Assign years to training, validation, and test sets
 train_year:
   - 2021
@@ -33,10 +37,10 @@ test_year:
 
 # Modeling hyperparameters
 tracking_uri: data/mlruns
-experiment_name: experiment_testing
-n_trials: 2
+experiment_name: xgb_pca_model_2
+n_trials: 100
 model_type: xgboost     # logistic or xgboost
-pca: false     # true or false
+pca: true     # true or false
 random_seed: 123
 ranges:
   logreg_c:

@@ -31,6 +31,12 @@ def main():
         help="Path to preprocessed data file. If not provided, default path"
         "is `dc311/data/interim/dc_311_preprocessed_data.csv`.",
     )
+    parser.add_argument(
+        "-f",
+        "--force",
+        action="store_true",
+        help="Re-create features and target even if they already exist",
+    )
     args = parser.parse_args()
 
     try:
@@ -49,9 +55,11 @@ def main():
         logger.debug(f"Data to preprocess is saved in directory: {data_path}")
 
         out_file_dir = os.path.join(project_dir, "data", "processed")
-        if os.path.exists(
-            os.path.join(out_file_dir, "processed_features.csv")
-        ) and os.path.exists(os.path.join(out_file_dir, "processed_target.csv")):
+        if (
+            os.path.exists(os.path.join(out_file_dir, "processed_features.csv"))
+            and os.path.exists(os.path.join(out_file_dir, "processed_target.csv"))
+            and not args.force
+        ):
             logger.debug("Features and target already created!")
         else:
             dc311_df = pd.read_csv(data_path)
@@ -83,7 +91,7 @@ def main():
                 df=dc311_df,
                 target_column="days_to_resolve",
                 task="classification",
-                clf_threshold=4,
+                clf_threshold=config["target_threshold"],
             )
             logger.info("Target created successfully.")
             logger.info(f"Target balance: {target_df['target'].value_counts()}")
