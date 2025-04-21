@@ -111,6 +111,9 @@ def process_ward_field(df: pd.DataFrame) -> pd.DataFrame:
             "Ward 6": 6,
             "Ward 7": 7,
             "Ward 8": 8,
+            "": 0,
+            "Null": 0,
         }
     )
+    df["ward"] = df["ward"].fillna(0).astype(int)
     return df

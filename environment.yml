@@ -16,4 +16,5 @@ dependencies:
   - flask
   - python-dotenv
   - pytest
+  - xgboost
 

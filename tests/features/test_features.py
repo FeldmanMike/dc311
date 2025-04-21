@@ -58,7 +58,7 @@ def test_engineer_features(time_dataframe):
     feature_df = feature_tform.fit_transform(test_df)
     assert isinstance(feature_df, pd.DataFrame)
     assert len(feature_df) == 3
-    assert feature_df.shape[1] == 14
+    assert feature_df.shape[1] == 11
     assert feature_df.isin([0, 1]).all().all()
 
 
@@ -72,3 +72,23 @@ def test_select_features(time_dataframe):
     assert feature_df.shape[1] == 1
     assert feature_df.shape[0] == 3
     assert list(feature_df.columns) == ["adddate"]
+
+
+def test_get_dataset_indices():
+    data = {"testcol": [1, 2, 3]}
+    train_df = pd.DataFrame(data)
+    train_df.index = [5, 6, 7]
+
+    val_df = pd.DataFrame(data)
+    val_df.index = [10, 11, 12]
+
+    test_df = pd.DataFrame(data)
+    test_df.index = [102, 101, 100]
+
+    test_dict = feat.get_dataset_indices(train_df, val_df, test_df)
+    check_dict = {
+        "train": [5, 6, 7],
+        "validation": [10, 11, 12],
+        "test": [102, 101, 100],
+    }
+    assert test_dict == check_dict

@@ -7,6 +7,7 @@ import json
 import os
 import pytest
 
+import numpy as np
 import pandas as pd
 import yaml
 
@@ -116,6 +117,8 @@ def ward_df():
             8,
             "Ward 8",
             "",
+            np.nan,
+            "Null",
         ]
     }
     return pd.DataFrame(data_dict)
