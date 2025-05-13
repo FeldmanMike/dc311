@@ -1,6 +1,7 @@
 *.csv
 *.log
 *.json
+!request_categories.json
 *.pyc
 __pycache__/
 metadata.*
