@@ -4,38 +4,51 @@ Develop Streamlit app
 
 from datetime import date
 import json
+import os
 
+from dotenv import load_dotenv
 import joblib
 import pandas as pd
 import streamlist as st
+import yaml
 
+import dc311.features.features as feat
+
+load_dotenv()
+config_path = os.getenv("DC_311_CONFIG_PATH")
+with open(config_path, "r") as file:
+    config = yaml.safe_load(file)
 
 under_21_day_model = joblib.load("../models/under_21_day_model.joblib")
 under_5_day_model = joblib.load("../models/under_21_day_model.joblib")
+feature_pipe = joblib.load("../models/feature_pipeline.joblib")
 
 with open("request_categories.json") as f:
     REQUEST_TYPES = json.load(f)
 WARDS = [f"Ward {i}" for i in range(1, 9)]
 
-# App UI
 st.title("DC 311 Request Resolution Time Predictor")
 
 request_type = st.selectbox("Type of 311 Request", REQUEST_TYPES)
+service_code = REQUEST_TYPES["All Requests"]["request_type"]
 submission_date = st.date_input("Date Submitted", value=date.today())
-ward = st.selectbox("Ward", WARDS)
+ward_str = st.selectbox("Ward", WARDS)
+ward = int(ward_str.replace("Ward ", ""))
 
 if st.button("Predict"):
     input_df = pd.DataFrame(
-        {"servicecode": [request_type], "ward": [ward], "adddate": [submission_date]}
+        {"servicecode": [service_code], "ward": [ward], "adddate": [submission_date]}
     )
 
-    # TODO - Add inference pipeline for dataframe
+    # TODO: save feature engineering pipeline
+    feature_pipe = feat.create_feature_engineering_pipeline(config["features"])
+    processed_df = feature_pipe.transform(input_df)
 
     # Probability that request will take > 21 days to resolve
-    preds_21_day = under_21_day_model.predict_proba(input_df)[1]
+    preds_21_day = under_21_day_model.predict_proba(processed_df)[1]
 
     # Probability that request will take < 5 days to resolve
-    preds_5_day = under_5_day_model.predict_proba(input_df)[0]
+    preds_5_day = under_5_day_model.predict_proba(processed_df)[0]
 
     st.subheader("Prediction Results")
     st.write(f"🟢 Probability resolved in < 5 days: **{preds_5_day[0]:.1%}**")
