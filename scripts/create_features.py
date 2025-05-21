@@ -3,6 +3,7 @@ Engineer features and target
 """
 
 import argparse
+import joblib
 import json
 import logging
 import os
@@ -85,6 +86,13 @@ def main():
             logger.info("Creating features for test set...")
             test_df = feature_pipe.transform(test_df)
             logger.info("Features created successfully.")
+
+            pipeline_path = os.path.join(
+                os.path.dirname(__file__), "..", "models", "feature_pipeline.joblib"
+            )
+            logger.info(f"Saving feature engineering pipeline to {pipeline_path}...")
+            joblib.dump(feature_pipe, pipeline_path)
+            logger.info("Pipeline saved!")
 
             logger.info("Creating target...")
             target_df = targ.create_target(

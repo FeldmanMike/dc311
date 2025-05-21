@@ -5,25 +5,28 @@ Develop Streamlit app
 from datetime import date
 import json
 import os
+import os.path as osp
+import sys
 
 from dotenv import load_dotenv
 import joblib
 import pandas as pd
-import streamlist as st
+import streamlit as st
 import yaml
 
-import dc311.features.features as feat
+
+sys.path.append(osp.dirname(osp.dirname(osp.abspath(__file__))))
 
 load_dotenv()
 config_path = os.getenv("DC_311_CONFIG_PATH")
 with open(config_path, "r") as file:
     config = yaml.safe_load(file)
 
-under_21_day_model = joblib.load("../models/under_21_day_model.joblib")
-under_5_day_model = joblib.load("../models/under_21_day_model.joblib")
-feature_pipe = joblib.load("../models/feature_pipeline.joblib")
+under_21_day_model = joblib.load("models/under_21_day_model.joblib")
+under_5_day_model = joblib.load("models/under_21_day_model.joblib")
+feature_pipe = joblib.load("models/feature_pipeline.joblib")
 
-with open("request_categories.json") as f:
+with open("streamlit_app/request_categories.json") as f:
     REQUEST_TYPES = json.load(f)
 WARDS = [f"Ward {i}" for i in range(1, 9)]
 
@@ -40,8 +43,6 @@ if st.button("Predict"):
         {"servicecode": [service_code], "ward": [ward], "adddate": [submission_date]}
     )
 
-    # TODO: save feature engineering pipeline
-    feature_pipe = feat.create_feature_engineering_pipeline(config["features"])
     processed_df = feature_pipe.transform(input_df)
 
     # Probability that request will take > 21 days to resolve
