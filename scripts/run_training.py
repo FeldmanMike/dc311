@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 import mlflow
 import mlflow.sklearn
 import pandas as pd
+from sklearn.metrics import brier_score_loss, roc_auc_score, average_precision_score
 import optuna
 import yaml
 
@@ -33,6 +34,23 @@ def main():
         required=False,
         help="Path to processed features and target. If not provided, default path"
         "is `dc311/data/processed/`",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        required=False,
+        help="Name of model file to save in `models/` folder. If not provided, "
+             "default name of file is model_<timestamp>.joblib",
+    )
+    parser.add_argument(
+        "-r",
+        "--retrain-with-test",
+        action="store_true",
+        required=False,
+        help="Whether to retrain the model with the training, validation, and test "
+             "sets. If not provided, then model is retrained with only the training "
+             "and validation sets.",
     )
     args = parser.parse_args()
 
@@ -86,10 +104,13 @@ def main():
             logger.info("Getting best model...")
             best_params = study.best_trial.params
             logger.info(f"Best params are: {best_params}")
-            X_train, y_train, _, _ = train.split_data(
+
+            logger.info("Evaluating best model on test set...")
+            X_train, y_train, X_test, y_test = train.split_data(
                 feature_df=feature_df,
                 target_df=target_df,
                 data_split_dict=data_split_dict,
+                holdout_set_type="test"
             )
             best_model = train.train_model(
                 X=X_train,
@@ -99,10 +120,30 @@ def main():
                 pca=config["pca"],
                 random_seed=config["random_seed"],
             )
+            y_proba = best_model.predict_proba(X_test)[:, 1]
+            brier_score = brier_score_loss(y_test, y_proba)
+            roc_auc = roc_auc_score(y_test, y_proba)
+            average_precision = average_precision_score(y_test, y_proba)
+
             logger.info("Logging best model...")
             mlflow.sklearn.log_model(best_model, "best_model")
             mlflow.log_params(best_params)
-            mlflow.log_metric("best_brier_score", study.best_trial.value)
+            mlflow.log_metric("best_val_brier_score", study.best_trial.value)
+            mlflow.log_metrics(
+                {
+                    "test_brier_score_loss": brier_score,
+                    "test_roc_auc_score": roc_auc,
+                    "test_average_precision_score": average_precision,
+                }
+            )
+            
+            # TODO - save out model to file and remove link to model
+            # if no output file provided, save out with timestamp
+            if args.retrain_with_test:
+                holdout_set_type = "test"
+            else:
+                holdout_set_type = "validation"
+
             logger.info("Model logging complete!")
             logger.info("Load best model with following call:")
             link_to_model = f"{config['tracking_uri']}/{run.info.experiment_id}/{run.info.run_id}/artifacts/best_model"

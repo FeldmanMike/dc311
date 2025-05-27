@@ -20,7 +20,10 @@ logger = logging.getLogger(__name__)
 
 
 def split_data(
-    feature_df: pd.DataFrame, target_df: pd.DataFrame, data_split_dict: Dict
+    feature_df: pd.DataFrame,
+    target_df: pd.DataFrame,
+    data_split_dict: Dict,
+    holdout_set_type: Optional[str] = "validation",
 ) -> Tuple:
     """
     Split data into train and test sets.
@@ -30,15 +33,27 @@ def split_data(
         target_df: DataFrame with targets
         data_split_dict: Dictionary with indices on which to split data into train
             and test sets
+        holdout_set_type: {"validation", "test"}
+            Whether the holdout set should be from the validation or test set. If
+            from the test set, then the training set is composed of the training
+            and validation sets.
 
     Returns:
         Tuple with four elements: train features, train targets, test features,
         test targets
     """
-    X_train = feature_df.loc[data_split_dict["train"]]
-    y_train = target_df.loc[data_split_dict["train"]]["target"]
-    X_test = feature_df.loc[data_split_dict["validation"]]
-    y_test = target_df.loc[data_split_dict["validation"]]["target"]
+    if holdout_set_type == "validation":
+        X_train = feature_df.loc[data_split_dict["train"]]
+        y_train = target_df.loc[data_split_dict["train"]]["target"]
+        X_test = feature_df.loc[data_split_dict["validation"]]
+        y_test = target_df.loc[data_split_dict["validation"]]["target"]
+    elif holdout_set_type == "test":
+        train_plus_val_idx = data_split_dict["train"] + data_split_dict["validation"]
+        X_train = feature_df.loc[train_plus_val_idx]
+        y_train = target_df.loc[train_plus_val_idx]["target"]
+        X_test = feature_df.loc[data_split_dict["test"]]
+        y_test = target_df.loc[data_split_dict["test"]]["target"]
+
     return X_train, y_train, X_test, y_test
 
 

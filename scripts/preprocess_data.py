@@ -29,12 +29,18 @@ def main():
         "is `dc311/data/raw/`.",
     )
     parser.add_argument(
-        "-f",
-        "--files",
+        "-i",
+        "--input",
         nargs="+",
         type=str,
         help="Names of files to be transformed. If none are provided, default is to "
         "transform all files in directory provided.",
+    )
+    parser.add_argument(
+        "-f",
+        "--force",
+        action="store_true",
+        help="If provided, then preprocess data even if data has already been preprocessed.",
     )
     args = parser.parse_args()
 
@@ -48,15 +54,15 @@ def main():
         logger.debug(f"Data to preprocess is saved in directory: {raw_file_dir}")
 
         logger.debug("Fetching names of files to be preprocessed...")
-        if args.files:
-            raw_file_list = args.files
+        if args.input:
+            raw_file_list = args.input
         else:
             raw_file_list = [f for f in os.listdir(raw_file_dir) if f.endswith(".csv")]
         logger.debug(f"Files to be preprocessed are: {raw_file_list}")
 
         outfile_dir = os.path.join(project_dir, "data", "interim")
         final_outfile_path = os.path.join(outfile_dir, "dc_311_preprocessed_data.csv")
-        if os.path.exists(final_outfile_path):
+        if os.path.exists(final_outfile_path) and not args.force:
             logger.debug(f"{final_outfile_path} exists! Bypassing preprocessing.")
         else:
             df_list = []
