@@ -1,9 +1,10 @@
 """
-Engineer features and target
+Train, evaluate, and save model
 """
 
 import argparse
 from datetime import datetime
+import joblib
 import json
 import logging
 import os
@@ -40,17 +41,18 @@ def main():
         "--output",
         type=str,
         required=False,
-        help="Name of model file to save in `models/` folder. If not provided, "
-             "default name of file is model_<timestamp>.joblib",
+        help="Name of model file to save in `models/` folder. "
+        "If not provided, model is not saved to `models/` folder",
     )
     parser.add_argument(
         "-r",
-        "--retrain-with-test",
+        "--retrain-with-test-set",
         action="store_true",
         required=False,
+        default=True,
         help="Whether to retrain the model with the training, validation, and test "
-             "sets. If not provided, then model is retrained with only the training "
-             "and validation sets.",
+        "sets. If not provided, then model is retrained with only the training "
+        "and validation sets.",
     )
     args = parser.parse_args()
 
@@ -110,7 +112,7 @@ def main():
                 feature_df=feature_df,
                 target_df=target_df,
                 data_split_dict=data_split_dict,
-                holdout_set_type="test"
+                holdout_set_type="test",
             )
             best_model = train.train_model(
                 X=X_train,
@@ -136,18 +138,48 @@ def main():
                     "test_average_precision_score": average_precision,
                 }
             )
-            
-            # TODO - save out model to file and remove link to model
-            # if no output file provided, save out with timestamp
+
             if args.retrain_with_test:
-                holdout_set_type = "test"
-            else:
-                holdout_set_type = "validation"
+                logger.info(
+                    "Retraining model using training, validation, and test sets..."
+                )
+                best_model = train.train_model(
+                    X=feature_df,
+                    y=target_df,
+                    params=best_params,
+                    model_type=config["model_type"],
+                    pca=config["pca"],
+                    random_seed=config["random_seed"],
+                )
+                y_proba = best_model.predict_proba(feature_df)[:, 1]
+                brier_score = brier_score_loss(target_df, y_proba)
+                roc_auc = roc_auc_score(target_df, y_proba)
+                average_precision = average_precision_score(target_df, y_proba)
+                logger.info(
+                    f"Training metrics of retrained best model:\n"
+                    f"Brier score: {brier_score:.4f}, "
+                    f"ROC AUC: {roc_auc:.4f}, "
+                    f"Average precision: {average_precision:.4f}"
+                )
+                mlflow.log_metrics(
+                    {
+                        "train_brier_score_loss": brier_score,
+                        "train_roc_auc_score": roc_auc,
+                        "train_average_precision_score": average_precision,
+                    }
+                )
 
             logger.info("Model logging complete!")
-            logger.info("Load best model with following call:")
-            link_to_model = f"{config['tracking_uri']}/{run.info.experiment_id}/{run.info.run_id}/artifacts/best_model"
-            logger.info(f"mlflow.sklearn.load_model('{link_to_model}')")
+            if args.output:
+                logger.info("Saving model...")
+                project_dir = os.path.dirname(os.path.dirname(__file__))
+                model_path = os.path.join(project_dir, "models", args.output)
+                joblib.dump(best_model, model_path)
+                logger.info(f"Model saved at: {model_path}")
+            else:
+                link_to_model = f"{config['tracking_uri']}/{run.info.experiment_id}/{run.info.run_id}/artifacts/best_model"
+                logger.info("Load model with following call:")
+                logger.info(f"mlflow.sklearn.load_model('{link_to_model}')")
     except Exception as e:
         logger.exception(f"There was an error: {e}")
         raise
