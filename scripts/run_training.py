@@ -138,8 +138,14 @@ def main():
                     "test_average_precision_score": average_precision,
                 }
             )
+            logger.info(
+                f"Test metrics of best model:\n"
+                f"Brier score: {brier_score:.4f}, "
+                f"ROC AUC: {roc_auc:.4f}, "
+                f"Average precision: {average_precision:.4f}"
+            )
 
-            if args.retrain_with_test:
+            if args.retrain_with_test_set:
                 logger.info(
                     "Retraining model using training, validation, and test sets..."
                 )

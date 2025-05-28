@@ -95,6 +95,7 @@ def main():
             logger.info("Pipeline saved!")
 
             logger.info("Creating target...")
+            # TODO - filter out years not in train, validation, or test set
             target_df = targ.create_target(
                 df=dc311_df,
                 target_column="days_to_resolve",
