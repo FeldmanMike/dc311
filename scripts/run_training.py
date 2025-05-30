@@ -49,7 +49,7 @@ def main():
         "--retrain-with-test-set",
         action="store_true",
         required=False,
-        default=True,
+        default=False,
         help="Whether to retrain the model with the training, validation, and test "
         "sets. If not provided, then model is retrained with only the training "
         "and validation sets.",

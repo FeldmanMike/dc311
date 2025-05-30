@@ -39,10 +39,10 @@ test_year:
 
 # Modeling hyperparameters
 tracking_uri: data/mlruns
-experiment_name: xgb_pca_model_2
-n_trials: 100
-model_type: xgboost     # logistic or xgboost
-pca: true     # true or false
+experiment_name: logistic_model
+n_trials: 50
+model_type: logistic     # logistic or xgboost
+pca: false     # true or false
 random_seed: 123
 ranges:
   logreg_c:

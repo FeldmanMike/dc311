@@ -95,9 +95,11 @@ def main():
             logger.info("Pipeline saved!")
 
             logger.info("Creating target...")
-            # TODO - filter out years not in train, validation, or test set
+            train_years = (
+                config["train_year"] + config["validation_year"] + config["test_year"]
+            )
             target_df = targ.create_target(
-                df=dc311_df,
+                df=dc311_df[dc311_df["adddate"].dt.year.isin(train_years)],
                 target_column="days_to_resolve",
                 task="classification",
                 clf_threshold=config["target_threshold"],

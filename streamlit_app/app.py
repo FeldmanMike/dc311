@@ -23,7 +23,7 @@ with open(config_path, "r") as file:
     config = yaml.safe_load(file)
 
 under_21_day_model = joblib.load("models/under_21_day_model.joblib")
-under_5_day_model = joblib.load("models/under_21_day_model.joblib")
+under_5_day_model = joblib.load("models/under_5_day_model.joblib")
 feature_pipe = joblib.load("models/feature_pipeline.joblib")
 
 with open("streamlit_app/request_categories.json") as f:
