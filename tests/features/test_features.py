@@ -58,7 +58,7 @@ def test_engineer_features(time_dataframe):
     feature_df = feature_tform.fit_transform(test_df)
     assert isinstance(feature_df, pd.DataFrame)
     assert len(feature_df) == 3
-    assert feature_df.shape[1] == 11
+    assert feature_df.shape[1] == 9
     assert feature_df.isin([0, 1]).all().all()
 
 

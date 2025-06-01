@@ -34,11 +34,9 @@ st.title("DC 311 Request Resolution Time Predictor")
 request_category = st.selectbox("311 Request Category", list(REQUEST_TYPES.keys()))
 request_type = st.selectbox("311 Request Type", REQUEST_TYPES[request_category])
 submission_date = st.date_input("Date Submitted", value=date.today())
-submission_time = st.time_input("Time Submitted")
 ward_str = st.selectbox("Ward", WARDS)
 
 if st.button("Predict"):
-    submission_datetime = datetime.combine(submission_date, submission_time)
     ward = int(ward_str.replace("Ward ", ""))
     service_code = REQUEST_TYPES["All Requests"][request_type]
     input_df = pd.DataFrame(
