@@ -101,7 +101,7 @@ def main():
             target_df = targ.create_target(
                 df=dc311_df[dc311_df["adddate"].dt.year.isin(train_years)],
                 target_column="days_to_resolve",
-                task="classification",
+                task=config["task_type"],
                 clf_threshold=config["target_threshold"],
             )
             logger.info("Target created successfully.")
@@ -120,18 +120,15 @@ def main():
             logger.info(
                 "Ensuring feature and target dataframes have identical indices..."
             )
+
             # Ensure feature_df and target_df have same objectids
             if len(feature_df) > len(target_df):
-                feature_df = feature_df[
-                    feature_df["objectid"].isin(target_df["objectid"])
-                ]
-            elif len(target_df) > len(feature_df):
-                target_df = target_df[
-                    target_df["objectid"].isin(feature_df["objectid"])
-                ]
+                feature_df = feature_df.loc[target_df.index]
+            else:
+                target_df = target_df.loc[feature_df.index]
 
             # Check that indices match
-            assert feature_df["objectid"].tolist() == target_df["objectid"].tolist()
+            assert feature_df.index.tolist() == target_df.index.tolist()
 
             logger.info(f"Saving features, target, and indices to {out_file_dir}")
             feature_df.to_csv(os.path.join(out_file_dir, "processed_features.csv"))
