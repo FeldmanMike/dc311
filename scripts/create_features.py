@@ -117,6 +117,22 @@ def main():
             feature_df = pd.concat([train_df, validation_df, test_df])
             logger.info("Concatenation complete.")
 
+            logger.info(
+                "Ensuring feature and target dataframes have identical indices..."
+            )
+            # Ensure feature_df and target_df have same objectids
+            if len(feature_df) > len(target_df):
+                feature_df = feature_df[
+                    feature_df["objectid"].isin(target_df["objectid"])
+                ]
+            elif len(target_df) > len(feature_df):
+                target_df = target_df[
+                    target_df["objectid"].isin(feature_df["objectid"])
+                ]
+
+            # Check that indices match
+            assert feature_df["objectid"].tolist() == target_df["objectid"].tolist()
+
             logger.info(f"Saving features, target, and indices to {out_file_dir}")
             feature_df.to_csv(os.path.join(out_file_dir, "processed_features.csv"))
             target_df.to_csv(os.path.join(out_file_dir, "processed_target.csv"))
