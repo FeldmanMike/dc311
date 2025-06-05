@@ -120,6 +120,7 @@ def objective(
     feature_df: pd.DataFrame,
     target_df: pd.DataFrame,
     data_split_dict: Dict,
+    task_type: str,
     model_type: Optional[str] = "logistic",
     pca: Optional[bool] = False,
     ranges: Optional[Dict] = None,
@@ -136,6 +137,8 @@ def objective(
         target_df: DataFrame with targets associated with features
         data_split_dict: Dictionary that specifies indices for samples associated with
             train and test sets
+        task_type: {"regression", "classification"}
+            Type of machine learning task
         model_type: {"logistic", "xgboost"}
             Type of model to train
         pca: Whether to apply principal component analysis to the feature data before
@@ -156,31 +159,60 @@ def objective(
         )
         params = {}
 
-        if model_type == "logistic":
-            c_range = ranges["logreg_c"]
-            params["logreg_c"] = trial.suggest_float(
-                "logreg_c", float(c_range["min"]), float(c_range["max"]), log=True
-            )
+        if task_type == "classification":
+            if model_type == "logistic":
+                c_range = ranges["logreg_c"]
+                params["logreg_c"] = trial.suggest_float(
+                    "logreg_c", float(c_range["min"]), float(c_range["max"]), log=True
+                )
 
-        elif model_type == "xgboost":
-            max_depth_range = ranges["xgb_max_depth"]
-            n_estimators_range = ranges["xgb_n_estimators"]
-            lr_range = ranges["xgb_learning_rate"]
-            params["xgb_max_depth"] = trial.suggest_int(
-                "xgb_max_depth",
-                int(max_depth_range["min"]),
-                int(max_depth_range["max"]),
-            )
-            params["xgb_n_estimators"] = trial.suggest_int(
-                "xgb_n_estimators",
-                int(n_estimators_range["min"]),
-                int(n_estimators_range["max"]),
-            )
-            params["xgb_learning_rate"] = trial.suggest_float(
-                "xgb_learning_rate",
-                float(lr_range["min"]),
-                float(lr_range["max"]),
-                log=True,
+            elif model_type == "xgboost":
+                max_depth_range = ranges["xgb_max_depth"]
+                n_estimators_range = ranges["xgb_n_estimators"]
+                lr_range = ranges["xgb_learning_rate"]
+                params["xgb_max_depth"] = trial.suggest_int(
+                    "xgb_max_depth",
+                    int(max_depth_range["min"]),
+                    int(max_depth_range["max"]),
+                )
+                params["xgb_n_estimators"] = trial.suggest_int(
+                    "xgb_n_estimators",
+                    int(n_estimators_range["min"]),
+                    int(n_estimators_range["max"]),
+                )
+                params["xgb_learning_rate"] = trial.suggest_float(
+                    "xgb_learning_rate",
+                    float(lr_range["min"]),
+                    float(lr_range["max"]),
+                    log=True,
+                )
+
+            else:
+                raise ValueError(
+                    f"model_type {model_type} is not supported when task_type is classification."
+                )
+        elif task_type == "regression":
+            if model_type == "elasticnet":
+                alpha_range = ranges["elastic_alpha"]
+                l1_ratio_range = ranges["elastic_l1_ratio"]
+                params["elastic_alpha"] = trial.suggest_float(
+                    "elastic_alpha",
+                    float(alpha_range["min"]),
+                    float(alpha_range["max"]),
+                )
+                params["l1_ratio_range"] = trial.suggest_float(
+                    "elastic_l1_ratio",
+                    float(l1_ratio_range["min"]),
+                    float(l1_ratio_range["max"]),
+                )
+            else:
+                raise ValueError(
+                    f"model_type {model_type} is not supported when task_type is regression."
+                )
+        else:
+            raise ValueError(
+                f"task_type is {task_type} but task_type must be in"
+                f"('classification', 'regression')"
             )
 
         if pca:
