@@ -10,7 +10,7 @@ import mlflow
 import optuna
 import pandas as pd
 from sklearn.decomposition import PCA
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import ElasticNet, LogisticRegression
 from sklearn.metrics import brier_score_loss, roc_auc_score, average_precision_score
 from sklearn.pipeline import Pipeline
 import xgboost as xgb
@@ -61,6 +61,7 @@ def train_model(
     X: pd.DataFrame,
     y: pd.DataFrame,
     params: Dict,
+    task_type: str,
     model_type: Optional[str] = "logistic",
     pca: Optional[bool] = False,
     random_seed: Optional[int] = 0,
@@ -72,6 +73,8 @@ def train_model(
         X: DataFrame of features
         y: DataFrame with targets corresponding to samples in X
         params: Dictionary of model hyperparameters
+        task_type: {"regression", "classification"}
+            Type of machine learning task
         model_type: {"logistic", "xgboost"}
             Type of model to be trained
         pca: Whether to apply principal component analysis to the feature data before
@@ -90,25 +93,56 @@ def train_model(
             )
         )
 
-    if model_type == "logistic":
-        steps.append(
-            (
-                "classifier",
-                LogisticRegression(C=params["logreg_c"], random_state=random_seed),
+    if task_type == "classification":
+        if model_type == "logistic":
+            steps.append(
+                (
+                    "classifier",
+                    LogisticRegression(C=params["logreg_c"], random_state=random_seed),
+                )
             )
-        )
-    elif model_type == "xgboost":
-        steps.append(
-            (
-                "classifier",
-                xgb.XGBClassifier(
-                    n_estimators=params["xgb_n_estimators"],
-                    max_depth=params["xgb_max_depth"],
-                    learning_rate=params["xgb_learning_rate"],
+        elif model_type == "xgboost":
+            steps.append(
+                (
+                    "classifier",
+                    xgb.XGBClassifier(
+                        n_estimators=params["xgb_n_estimators"],
+                        max_depth=params["xgb_max_depth"],
+                        learning_rate=params["xgb_learning_rate"],
+                        random_state=random_seed,
+                    ),
+                )
+            )
+        else:
+            raise ValueError(
+                f"model_type of {model_type} is not supported with classification task_type."
+            )
+    elif task_type == "regression":
+        if model_type == "elasticnet":
+            steps.append(
+                "regressor",
+                ElasticNet(
+                    alpha=params["en_alpha"],
+                    l1_ratio=params["en_l1_ratio"],
                     random_state=random_seed,
                 ),
             )
-        )
+        elif model_type == "xgboost":
+            steps.append(
+                (
+                    "regressor",
+                    xgb.XGBRegressor(
+                        n_estimators=params["xgb_n_estimators"],
+                        max_depth=params["xgb_max_depth"],
+                        learning_rate=params["xgb_learning_rate"],
+                        random_state=random_seed,
+                    ),
+                )
+            )
+        else:
+            raise ValueError(
+                f"model_type of {model_type} is not supported with regression task_type."
+            )
 
     model_pipeline = Pipeline(steps)
     model_pipeline.fit(X, y)
@@ -159,32 +193,33 @@ def objective(
         )
         params = {}
 
-        if task_type == "classification":
+        # xgboost can be used for regression or classification
+        if model_type == "xgboost":
+            max_depth_range = ranges["xgb_max_depth"]
+            n_estimators_range = ranges["xgb_n_estimators"]
+            lr_range = ranges["xgb_learning_rate"]
+            params["xgb_max_depth"] = trial.suggest_int(
+                "xgb_max_depth",
+                int(max_depth_range["min"]),
+                int(max_depth_range["max"]),
+            )
+            params["xgb_n_estimators"] = trial.suggest_int(
+                "xgb_n_estimators",
+                int(n_estimators_range["min"]),
+                int(n_estimators_range["max"]),
+            )
+            params["xgb_learning_rate"] = trial.suggest_float(
+                "xgb_learning_rate",
+                float(lr_range["min"]),
+                float(lr_range["max"]),
+                log=True,
+            )
+
+        elif task_type == "classification":
             if model_type == "logistic":
                 c_range = ranges["logreg_c"]
                 params["logreg_c"] = trial.suggest_float(
                     "logreg_c", float(c_range["min"]), float(c_range["max"]), log=True
-                )
-
-            elif model_type == "xgboost":
-                max_depth_range = ranges["xgb_max_depth"]
-                n_estimators_range = ranges["xgb_n_estimators"]
-                lr_range = ranges["xgb_learning_rate"]
-                params["xgb_max_depth"] = trial.suggest_int(
-                    "xgb_max_depth",
-                    int(max_depth_range["min"]),
-                    int(max_depth_range["max"]),
-                )
-                params["xgb_n_estimators"] = trial.suggest_int(
-                    "xgb_n_estimators",
-                    int(n_estimators_range["min"]),
-                    int(n_estimators_range["max"]),
-                )
-                params["xgb_learning_rate"] = trial.suggest_float(
-                    "xgb_learning_rate",
-                    float(lr_range["min"]),
-                    float(lr_range["max"]),
-                    log=True,
                 )
 
             else:
@@ -193,15 +228,15 @@ def objective(
                 )
         elif task_type == "regression":
             if model_type == "elasticnet":
-                alpha_range = ranges["elastic_alpha"]
-                l1_ratio_range = ranges["elastic_l1_ratio"]
-                params["elastic_alpha"] = trial.suggest_float(
-                    "elastic_alpha",
+                alpha_range = ranges["en_alpha"]
+                l1_ratio_range = ranges["en_l1_ratio"]
+                params["en_alpha"] = trial.suggest_float(
+                    "en_alpha",
                     float(alpha_range["min"]),
                     float(alpha_range["max"]),
                 )
-                params["l1_ratio_range"] = trial.suggest_float(
-                    "elastic_l1_ratio",
+                params["en_l1_ratio"] = trial.suggest_float(
+                    "en_l1_ratio",
                     float(l1_ratio_range["min"]),
                     float(l1_ratio_range["max"]),
                 )
