@@ -11,7 +11,14 @@ import optuna
 import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.linear_model import ElasticNet, LogisticRegression
-from sklearn.metrics import brier_score_loss, roc_auc_score, average_precision_score
+from sklearn.metrics import (
+    brier_score_loss,
+    roc_auc_score,
+    average_precision_score,
+    mean_squared_error,
+    mean_absolute_error,
+    r2_score,
+)
 from sklearn.pipeline import Pipeline
 import xgboost as xgb
 
@@ -261,23 +268,39 @@ def objective(
             X=X_train,
             y=y_train,
             params=params,
+            task_type=task_type,
             model_type=model_type,
             pca=pca,
             random_seed=random_seed,
         )
-
-        y_proba = model.predict_proba(X_test)[:, 1]
-        brier_score = brier_score_loss(y_test, y_proba)
-        roc_auc = roc_auc_score(y_test, y_proba)
-        average_precision = average_precision_score(y_test, y_proba)
-
-        params["objective"] = "clf:min_brier_score"
         mlflow.log_params(params)
-        mlflow.log_metrics(
-            {
-                "brier_score_loss": brier_score,
-                "roc_auc_score": roc_auc,
-                "average_precision_score": average_precision,
-            }
-        )
-        return brier_score
+
+        if task_type == "classification":
+            y_proba = model.predict_proba(X_test)[:, 1]
+            brier_score = brier_score_loss(y_test, y_proba)
+            roc_auc = roc_auc_score(y_test, y_proba)
+            average_precision = average_precision_score(y_test, y_proba)
+
+            params["objective"] = "clf:min_brier_score"
+            mlflow.log_metrics(
+                {
+                    "brier_score_loss": brier_score,
+                    "roc_auc_score": roc_auc,
+                    "average_precision_score": average_precision,
+                }
+            )
+            return brier_score
+
+        if task_type == "regression":
+            y_pred = model.predict(X_test)
+            mean_sq_err = mean_squared_error(y_test, y_pred)
+            mean_abs_err = mean_absolute_error(y_test, y_pred)
+            r2 = r2_score(y_test, y_pred)
+            mlflow.log_metrics(
+                {
+                    "mean_squared_error": mean_sq_err,
+                    "mean_absolute_error": mean_abs_err,
+                    "r2_score": r2,
+                }
+            )
+            return mean_sq_err

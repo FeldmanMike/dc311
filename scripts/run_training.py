@@ -13,7 +13,14 @@ from dotenv import load_dotenv
 import mlflow
 import mlflow.sklearn
 import pandas as pd
-from sklearn.metrics import brier_score_loss, roc_auc_score, average_precision_score
+from sklearn.metrics import (
+    brier_score_loss,
+    roc_auc_score,
+    average_precision_score,
+    mean_squared_error,
+    mean_absolute_error,
+    r2_score,
+)
 import optuna
 import yaml
 
@@ -95,6 +102,7 @@ def main():
                     feature_df=feature_df,
                     target_df=target_df,
                     data_split_dict=data_split_dict,
+                    task_type=config["task_type"],
                     model_type=config["model_type"],
                     pca=config["pca"],
                     ranges=config["ranges"],
@@ -118,6 +126,7 @@ def main():
                 X=X_train,
                 y=y_train,
                 params=best_params,
+                task_type=config["task_type"],
                 model_type=config["model_type"],
                 pca=config["pca"],
                 random_seed=config["random_seed"],
