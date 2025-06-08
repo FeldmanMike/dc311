@@ -156,6 +156,44 @@ def train_model(
     return model_pipeline
 
 
+def evaluate_model(
+    model: Pipeline, X_test: pd.DataFrame, y_test: pd.DataFrame, task_type: str
+) -> Dict:
+    """
+    Evaluate model and output set of metrics.
+
+    Args:
+        model: A fit model pipeline object
+        X_test: Features to pass to model
+        y_test: Ground truth labels
+        task_type: {'classification', 'regression'}
+            Type of task that will be performed with model
+
+    Returns:
+        Dictionary where the keys are evaluation metrics and the values
+        are the metric values recorded during model evaluation.
+    """
+    if task_type == "classification":
+        y_proba = model.predict_proba(X_test)[:, 1]
+        return {
+            "brier_score_loss": brier_score_loss(y_test, y_proba),
+            "roc_auc_score": roc_auc_score(y_test, y_proba),
+            "average_precision_score": average_precision_score(y_test, y_proba),
+        }
+    if task_type == "regression":
+        y_pred = model.predict(X_test)
+        return {
+            "mean_squared_error": mean_squared_error(y_test, y_pred),
+            "mean_absolute_error": mean_absolute_error(y_test, y_pred),
+            "r2_score": r2_score(y_test, y_pred),
+        }
+
+    raise ValueError(
+        f"task_type of {task_type} is not supported. "
+        f"task_type must be in ('classification', 'regression')."
+    )
+
+
 def objective(
     trial: optuna.trial.Trial,
     feature_df: pd.DataFrame,
@@ -276,31 +314,24 @@ def objective(
         mlflow.log_params(params)
 
         if task_type == "classification":
-            y_proba = model.predict_proba(X_test)[:, 1]
-            brier_score = brier_score_loss(y_test, y_proba)
-            roc_auc = roc_auc_score(y_test, y_proba)
-            average_precision = average_precision_score(y_test, y_proba)
-
+            metric_dict = evaluate_model(model, X_test, y_test, task_type)
             params["objective"] = "clf:min_brier_score"
             mlflow.log_metrics(
                 {
-                    "brier_score_loss": brier_score,
-                    "roc_auc_score": roc_auc,
-                    "average_precision_score": average_precision,
+                    "brier_score_loss": metric_dict["brier_score_loss"],
+                    "roc_auc_score": metric_dict["roc_auc_score"],
+                    "average_precision_score": metric_dict["average_precision_score"],
                 }
             )
-            return brier_score
+            return metric_dict["brier_score_loss"]
 
         if task_type == "regression":
-            y_pred = model.predict(X_test)
-            mean_sq_err = mean_squared_error(y_test, y_pred)
-            mean_abs_err = mean_absolute_error(y_test, y_pred)
-            r2 = r2_score(y_test, y_pred)
+            metric_dict = evaluate_model(model, X_test, y_test, task_type)
             mlflow.log_metrics(
                 {
-                    "mean_squared_error": mean_sq_err,
-                    "mean_absolute_error": mean_abs_err,
-                    "r2_score": r2,
+                    "mean_squared_error": metric_dict["mean_squared_error"],
+                    "mean_absolute_error": metric_dict["mean_absolute_error"],
+                    "r2_score": metric_dict["r2_score"],
                 }
             )
-            return mean_sq_err
+            return metric_dict["mean_squared_error"]
