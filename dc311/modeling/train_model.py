@@ -313,8 +313,8 @@ def objective(
         )
         mlflow.log_params(params)
 
+        metric_dict = evaluate_model(model, X_test, y_test, task_type)
         if task_type == "classification":
-            metric_dict = evaluate_model(model, X_test, y_test, task_type)
             params["objective"] = "clf:min_brier_score"
             mlflow.log_metrics(
                 {
@@ -326,7 +326,7 @@ def objective(
             return metric_dict["brier_score_loss"]
 
         if task_type == "regression":
-            metric_dict = evaluate_model(model, X_test, y_test, task_type)
+            params["objective"] = "reg:min_mean_squared_error"
             mlflow.log_metrics(
                 {
                     "mean_squared_error": metric_dict["mean_squared_error"],

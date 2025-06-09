@@ -131,28 +131,51 @@ def main():
                 pca=config["pca"],
                 random_seed=config["random_seed"],
             )
-            y_proba = best_model.predict_proba(X_test)[:, 1]
-            brier_score = brier_score_loss(y_test, y_proba)
-            roc_auc = roc_auc_score(y_test, y_proba)
-            average_precision = average_precision_score(y_test, y_proba)
 
             logger.info("Logging best model...")
             mlflow.sklearn.log_model(best_model, "best_model")
             mlflow.log_params(best_params)
             mlflow.log_metric("best_val_brier_score", study.best_trial.value)
-            mlflow.log_metrics(
-                {
-                    "test_brier_score_loss": brier_score,
-                    "test_roc_auc_score": roc_auc,
-                    "test_average_precision_score": average_precision,
-                }
+            metric_dict = train.evaluate_model(
+                best_model, X_test, y_test, config["task_type"]
             )
-            logger.info(
-                f"Test metrics of best model:\n"
-                f"Brier score: {brier_score:.4f}, "
-                f"ROC AUC: {roc_auc:.4f}, "
-                f"Average precision: {average_precision:.4f}"
-            )
+
+            if config["task_type"] == "classification":
+                mlflow.log_metrics(
+                    {
+                        "test_brier_score_loss": metric_dict["brier_score_loss"],
+                        "test_roc_auc_score": metric_dict["roc_auc_score"],
+                        "test_average_precision_score": metric_dict[
+                            "average_precision_score"
+                        ],
+                    }
+                )
+                logger.info(
+                    f"Test metrics of best model:\n"
+                    f"Brier score: {metric_dict['brier_score_loss']:.4f}, "
+                    f"ROC AUC: {metric_dict['roc_auc_score']:.4f}, "
+                    f"Average precision: {metric_dict['average_precision_score']:.4f}"
+                )
+
+            elif config["task_type"] == "regression":
+                mlflow.log_metrics(
+                    {
+                        "test_mean_squared_error": metric_dict["mean_squared_error"],
+                        "test_mean_absolute_error": metric_dict["mean_absolute_error"],
+                        "test_r2_score": metric_dict["r2_score"],
+                    }
+                )
+                logger.info(
+                    f"Test metrics of best model:\n"
+                    f"Mean squared error: {metric_dict['mean_squared_error']:.4f}, "
+                    f"Mean absolute error: {metric_dict['mean_absolute_error']:.4f}, "
+                    f"R2: {metric_dict['r2_score']:.4f}"
+                )
+            else:
+                raise ValueError(
+                    f"task_type is {config['task_type']}, but task_type must be "
+                    f"in ('classification', 'regression')."
+                )
 
             if args.retrain_with_test_set:
                 logger.info(
@@ -166,23 +189,49 @@ def main():
                     pca=config["pca"],
                     random_seed=config["random_seed"],
                 )
-                y_proba = best_model.predict_proba(feature_df)[:, 1]
-                brier_score = brier_score_loss(target_df, y_proba)
-                roc_auc = roc_auc_score(target_df, y_proba)
-                average_precision = average_precision_score(target_df, y_proba)
-                logger.info(
-                    f"Training metrics of retrained best model:\n"
-                    f"Brier score: {brier_score:.4f}, "
-                    f"ROC AUC: {roc_auc:.4f}, "
-                    f"Average precision: {average_precision:.4f}"
+                metric_dict = train.evaluate_model(
+                    best_model, X_test, y_test, config["task_type"]
                 )
-                mlflow.log_metrics(
-                    {
-                        "train_brier_score_loss": brier_score,
-                        "train_roc_auc_score": roc_auc,
-                        "train_average_precision_score": average_precision,
-                    }
-                )
+                if config["task_type"] == "classification":
+                    mlflow.log_metrics(
+                        {
+                            "train_brier_score_loss": metric_dict["brier_score_loss"],
+                            "train_roc_auc_score": metric_dict["roc_auc_score"],
+                            "train_average_precision_score": metric_dict[
+                                "average_precision_score"
+                            ],
+                        }
+                    )
+                    logger.info(
+                        f"Training metrics of retrained best model:\n"
+                        f"Brier score: {metric_dict['brier_score_loss']:.4f}, "
+                        f"ROC AUC: {metric_dict['roc_auc_score']:.4f}, "
+                        f"Average precision: {metric_dict['average_precision_score']:.4f}"
+                    )
+
+                elif config["task_type"] == "regression":
+                    mlflow.log_metrics(
+                        {
+                            "train_mean_squared_error": metric_dict[
+                                "mean_squared_error"
+                            ],
+                            "train_mean_absolute_error": metric_dict[
+                                "mean_absolute_error"
+                            ],
+                            "train_r2_score": metric_dict["r2_score"],
+                        }
+                    )
+                    logger.info(
+                        f"Training metrics of retrained best model:\n"
+                        f"Mean squared error: {metric_dict['mean_squared_error']:.4f}, "
+                        f"Mean absolute error: {metric_dict['mean_absolute_error']:.4f}, "
+                        f"R2: {metric_dict['r2_score']:.4f}"
+                    )
+                else:
+                    raise ValueError(
+                        f"task_type is {config['task_type']}, but task_type must be "
+                        f"in ('classification', 'regression')."
+                    )
 
             logger.info("Model logging complete!")
             if args.output:
