@@ -13,14 +13,6 @@ from dotenv import load_dotenv
 import mlflow
 import mlflow.sklearn
 import pandas as pd
-from sklearn.metrics import (
-    brier_score_loss,
-    roc_auc_score,
-    average_precision_score,
-    mean_squared_error,
-    mean_absolute_error,
-    r2_score,
-)
 import optuna
 import yaml
 
@@ -185,6 +177,7 @@ def main():
                     X=feature_df,
                     y=target_df,
                     params=best_params,
+                    task_type=config["task_type"],
                     model_type=config["model_type"],
                     pca=config["pca"],
                     random_seed=config["random_seed"],
