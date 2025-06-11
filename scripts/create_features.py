@@ -67,12 +67,37 @@ def main():
             dc311_df = dc311_df.set_index("objectid")
             dc311_df["adddate"] = pd.to_datetime(dc311_df["adddate"])
 
+            logger.info("Creating target...")
+            train_years = (
+                config["train_year"] + config["validation_year"] + config["test_year"]
+            )
+            target_df = targ.create_target(
+                df=dc311_df[dc311_df["adddate"].dt.year.isin(train_years)],
+                target_column="days_to_resolve",
+                task=config["task_type"],
+                clf_threshold=config["target_threshold"],
+            )
+
+            # Ensure feature_df and target_df have same objectids
+            feature_df = dc311_df.copy(deep=True)
+            if len(feature_df) > len(target_df):
+                logger.info(
+                    f"Reducing size of feature_df from {len(feature_df)} to {len(target_df)}..."
+                )
+                feature_df = feature_df.loc[target_df.index]
+            else:
+                target_df = target_df.loc[feature_df.index]
+
             logger.info("Splitting data into training, validaton, and test sets...")
-            train_df = dc311_df[dc311_df["adddate"].dt.year.isin(config["train_year"])]
-            validation_df = dc311_df[
-                dc311_df["adddate"].dt.year.isin(config["validation_year"])
+            train_df = feature_df[
+                feature_df["adddate"].dt.year.isin(config["train_year"])
             ]
-            test_df = dc311_df[dc311_df["adddate"].dt.year.isin(config["test_year"])]
+            validation_df = feature_df[
+                feature_df["adddate"].dt.year.isin(config["validation_year"])
+            ]
+            test_df = feature_df[
+                feature_df["adddate"].dt.year.isin(config["test_year"])
+            ]
             logger.info("Data split complete.")
 
             feature_pipe = feat.create_feature_engineering_pipeline(config["features"])
@@ -94,16 +119,6 @@ def main():
             joblib.dump(feature_pipe, pipeline_path)
             logger.info("Pipeline saved!")
 
-            logger.info("Creating target...")
-            train_years = (
-                config["train_year"] + config["validation_year"] + config["test_year"]
-            )
-            target_df = targ.create_target(
-                df=dc311_df[dc311_df["adddate"].dt.year.isin(train_years)],
-                target_column="days_to_resolve",
-                task=config["task_type"],
-                clf_threshold=config["target_threshold"],
-            )
             logger.info("Target created successfully.")
             logger.info(f"Target balance: {target_df['target'].value_counts()}")
 
@@ -121,13 +136,8 @@ def main():
                 "Ensuring feature and target dataframes have identical indices..."
             )
 
-            # Ensure feature_df and target_df have same objectids
-            if len(feature_df) > len(target_df):
-                feature_df = feature_df.loc[target_df.index]
-            else:
-                target_df = target_df.loc[feature_df.index]
-
-            # Check that indices match
+            # Ensure that indices of feature_df and target_df match
+            feature_df = feature_df.loc[target_df.index]
             assert feature_df.index.tolist() == target_df.index.tolist()
 
             logger.info(f"Saving features, target, and indices to {out_file_dir}")

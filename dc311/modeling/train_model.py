@@ -127,12 +127,14 @@ def train_model(
     elif task_type == "regression":
         if model_type == "elasticnet":
             steps.append(
-                "regressor",
-                ElasticNet(
-                    alpha=params["en_alpha"],
-                    l1_ratio=params["en_l1_ratio"],
-                    random_state=random_seed,
-                ),
+                (
+                    "regressor",
+                    ElasticNet(
+                        alpha=params["en_alpha"],
+                        l1_ratio=params["en_l1_ratio"],
+                        random_state=random_seed,
+                    ),
+                )
             )
         elif model_type == "xgboost":
             steps.append(
