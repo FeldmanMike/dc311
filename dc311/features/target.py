@@ -38,7 +38,7 @@ def create_target(
 
     if task == "regression":
         df["target"] = df[target_column].replace("", np.nan)
-        return df[df["target"].notna()]
+        return df[df["target"].notna()][["target"]]
 
     df[target_column] = pd.to_numeric(df[target_column], errors="coerce")
 
