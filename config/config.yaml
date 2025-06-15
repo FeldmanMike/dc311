@@ -38,11 +38,11 @@ test_year:
   - 2024
 
 # Modeling hyperparameters
-task_type: classification   # regression or classification
+task_type: regression   # regression or classification
 tracking_uri: data/mlruns
-experiment_name: logistic_model
-n_trials: 50
-model_type: logistic     # logistic or xgboost
+experiment_name: reg_en
+n_trials: 100
+model_type: elasticnet     # logistic, xgboost, or elasticnet
 pca: false     # true or false
 random_seed: 123
 ranges:
@@ -60,3 +60,9 @@ ranges:
   xgb_learning_rate:
     min: 1.0e-4
     max: 0.3
+  en_alpha:
+    min: 0
+    max: 0.5
+  en_l1_ratio:
+    min: 0.9
+    max: 1.0

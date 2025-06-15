@@ -17,6 +17,7 @@ from sklearn.metrics import (
     average_precision_score,
     mean_squared_error,
     mean_absolute_error,
+    median_absolute_error,
     r2_score,
 )
 from sklearn.pipeline import Pipeline
@@ -187,6 +188,7 @@ def evaluate_model(
         return {
             "mean_squared_error": mean_squared_error(y_test, y_pred),
             "mean_absolute_error": mean_absolute_error(y_test, y_pred),
+            "median_absolute_error": median_absolute_error(y_test, y_pred),
             "r2_score": r2_score(y_test, y_pred),
         }
 
@@ -229,7 +231,7 @@ def objective(
         random_seed: Seed provided to ensure reproducibility
 
     Returns:
-        Brier score loss associated with training run
+        Score of objective function associated with training run
     """
     child_run_name = (
         f"child_run_{trial.number}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -333,7 +335,8 @@ def objective(
                 {
                     "mean_squared_error": metric_dict["mean_squared_error"],
                     "mean_absolute_error": metric_dict["mean_absolute_error"],
+                    "median_absolute_error": metric_dict["median_absolute_error"],
                     "r2_score": metric_dict["r2_score"],
                 }
             )
-            return metric_dict["mean_squared_error"]
+            return metric_dict["median_absolute_error"]

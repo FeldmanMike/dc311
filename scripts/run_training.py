@@ -154,6 +154,9 @@ def main():
                     {
                         "test_mean_squared_error": metric_dict["mean_squared_error"],
                         "test_mean_absolute_error": metric_dict["mean_absolute_error"],
+                        "test_median_absolute_error": metric_dict[
+                            "median_absolute_error"
+                        ],
                         "test_r2_score": metric_dict["r2_score"],
                     }
                 )
@@ -161,6 +164,7 @@ def main():
                     f"Test metrics of best model:\n"
                     f"Mean squared error: {metric_dict['mean_squared_error']:.4f}, "
                     f"Mean absolute error: {metric_dict['mean_absolute_error']:.4f}, "
+                    f"Median absolute error: {metric_dict['median_absolute_error']:.4f}, "
                     f"R2: {metric_dict['r2_score']:.4f}"
                 )
             else:
@@ -211,6 +215,9 @@ def main():
                             "train_mean_absolute_error": metric_dict[
                                 "mean_absolute_error"
                             ],
+                            "train_median_absolute_error": metric_dict[
+                                "median_absolute_error"
+                            ],
                             "train_r2_score": metric_dict["r2_score"],
                         }
                     )
@@ -218,6 +225,7 @@ def main():
                         f"Training metrics of retrained best model:\n"
                         f"Mean squared error: {metric_dict['mean_squared_error']:.4f}, "
                         f"Mean absolute error: {metric_dict['mean_absolute_error']:.4f}, "
+                        f"Median absolute error: {metric_dict['median_absolute_error']:.4f}, "
                         f"R2: {metric_dict['r2_score']:.4f}"
                     )
                 else:
