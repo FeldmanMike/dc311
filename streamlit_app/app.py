@@ -2,7 +2,7 @@
 Develop Streamlit app
 """
 
-from datetime import date, datetime
+from datetime import date
 import json
 import os
 import os.path as osp
@@ -24,7 +24,9 @@ with open(config_path, "r") as file:
 
 under_21_day_model = joblib.load("models/under_21_day_model.joblib")
 under_5_day_model = joblib.load("models/under_5_day_model.joblib")
-feature_pipe = joblib.load("models/feature_pipeline.joblib")
+num_days_model = joblib.load("models/num_days_model.joblib")
+feature_pipe_clf = joblib.load("models/feature_pipeline_clf.joblib")
+feature_pipe_reg = joblib.load("models/feature_pipeline_reg.joblib")
 
 with open("streamlit_app/request_categories.json") as f:
     REQUEST_TYPES = json.load(f)
@@ -44,14 +46,19 @@ if st.button("Predict"):
     )
     input_df["adddate"] = pd.to_datetime(input_df["adddate"])
 
-    processed_df = feature_pipe.transform(input_df)
+    processed_df_clf = feature_pipe_clf.transform(input_df)
+    processed_df_reg = feature_pipe_reg.transform(input_df)
+
+    # Predicted number of days to resolve request
+    preds_num_days = num_days_model.predict(processed_df_reg)
 
     # Probability that request will take > 21 days to resolve
-    preds_21_day = under_21_day_model.predict_proba(processed_df)[:, 1]
+    preds_21_day = under_21_day_model.predict_proba(processed_df_clf)[:, 1]
 
     # Probability that request will take < 5 days to resolve
-    preds_5_day = under_5_day_model.predict_proba(processed_df)[:, 0]
+    preds_5_day = under_5_day_model.predict_proba(processed_df_clf)[:, 0]
 
     st.subheader("Prediction Results")
+    st.write(f"Predicted number of days to resolve request: **{preds_num_days[0]}**")
     st.write(f"🟢 Probability resolved in < 5 days: **{preds_5_day[0]:.1%}**")
     st.write(f"🔴 Probability resolved in > 21 days: **{preds_21_day[0]:.1%}**")

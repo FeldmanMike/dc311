@@ -26,7 +26,7 @@ features:
 
 # Target values less than or equal to this value are set to 0
 # Greater than this value are set to 1
-target_threshold: 21
+target_threshold: 4
 
 # Assign years to training, validation, and test sets
 train_year:
@@ -38,11 +38,11 @@ test_year:
   - 2024
 
 # Modeling hyperparameters
-task_type: regression   # regression or classification
+task_type: classification   # regression or classification
 tracking_uri: data/mlruns
 experiment_name: reg_en
-n_trials: 100
-model_type: elasticnet     # logistic, xgboost, or elasticnet
+n_trials: 5
+model_type: logistic     # logistic, xgboost, or elasticnet
 pca: false     # true or false
 random_seed: 123
 ranges:

@@ -36,11 +36,10 @@ def main():
         "is `dc311/data/processed/`",
     )
     parser.add_argument(
-        "-o",
-        "--output",
-        type=str,
-        required=False,
-        help="Name of model file to save in `models/` folder. "
+        "-s",
+        "--save-model",
+        action="store_true",
+        help="Whether to save model file to save in `models/` folder. "
         "If not provided, model is not saved to `models/` folder",
     )
     parser.add_argument(
@@ -67,13 +66,21 @@ def main():
             project_dir = os.path.dirname(os.path.dirname(__file__))
             data_dir = os.path.join(project_dir, "data", "processed")
         logger.debug(f"Processed data is saved in directory: {data_dir}")
+        if config["task_type"] == "classification":
+            feat_file_name = "processed_features_clf.csv"
+            targ_file_name = (
+                f"processed_target_clf_{str(config['target_threshold'])}.csv"
+            )
+        elif config["task_type"] == "regression":
+            feat_file_name = "processed_features_reg.csv"
+            targ_file_name = "processed_target_reg.csv"
 
         logger.info("Loading features, targets, and data split indices...")
         feature_df = pd.read_csv(
-            os.path.join(data_dir, "processed_features.csv"), index_col="objectid"
+            os.path.join(data_dir, feat_file_name), index_col="objectid"
         )
         target_df = pd.read_csv(
-            os.path.join(data_dir, "processed_target.csv"), index_col="objectid"
+            os.path.join(data_dir, targ_file_name), index_col="objectid"
         )
         with open(os.path.join(data_dir, "dataset_indices.json"), "r") as f:
             data_split_dict = json.load(f)
@@ -235,10 +242,18 @@ def main():
                     )
 
             logger.info("Model logging complete!")
-            if args.output:
+            if args.save_model:
                 logger.info("Saving model...")
                 project_dir = os.path.dirname(os.path.dirname(__file__))
-                model_path = os.path.join(project_dir, "models", args.output)
+                if config["task_type"] == "classification":
+                    model_name = (
+                        f"under_{str(config['target_threshold'])}_day_model.joblib"
+                    )
+                elif config["task_type"] == "regression":
+                    model_name = "num_days_model.joblib"
+                model_path = os.path.join(
+                    project_dir, "models", args.output, model_name
+                )
                 joblib.dump(best_model, model_path)
                 logger.info(f"Model saved at: {model_path}")
             else:
