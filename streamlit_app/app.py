@@ -10,6 +10,7 @@ import sys
 
 from dotenv import load_dotenv
 import joblib
+import numpy as np
 import pandas as pd
 import streamlit as st
 import yaml
@@ -32,13 +33,23 @@ with open("streamlit_app/request_categories.json") as f:
     REQUEST_TYPES = json.load(f)
 WARDS = [f"Ward {i}" for i in range(1, 9)]
 
-st.title("DC 311 Request Resolution Time Predictor")
-request_category = st.selectbox("311 Request Category", list(REQUEST_TYPES.keys()))
-request_type = st.selectbox("311 Request Type", REQUEST_TYPES[request_category])
-submission_date = st.date_input("Date Submitted", value=date.today())
-ward_str = st.selectbox("Ward", WARDS)
+st.set_page_config(page_title="DC 311 Predictor", layout="wide")
+with st.sidebar:
+    st.header("Your 311 Request Details")
+    request_category = st.selectbox("311 Request Category", list(REQUEST_TYPES.keys()))
+    request_type = st.selectbox("311 Request Type", REQUEST_TYPES[request_category])
+    submission_date = st.date_input("Date Submitted", value=date.today())
+    ward_str = st.selectbox("Ward", WARDS)
+    submit = st.button("Predict")
 
-if st.button("Predict"):
+st.title("DC 311 Request: How Long Should It Take?")
+st.divider()
+
+if not submit:
+    st.markdown(
+        "⬅️  Use the sidebar to enter request details, then click **Predict** to see estimated resolution times."
+    )
+else:
     ward = int(ward_str.replace("Ward ", ""))
     service_code = REQUEST_TYPES["All Requests"][request_type]
     input_df = pd.DataFrame(
@@ -50,7 +61,8 @@ if st.button("Predict"):
     processed_df_reg = feature_pipe_reg.transform(input_df)
 
     # Predicted number of days to resolve request
-    preds_num_days = num_days_model.predict(processed_df_reg)
+    pred_num_days = num_days_model.predict(processed_df_reg)[0]
+    pred_num_days = 0 if pred_num_days < 0 else pred_num_days
 
     # Probability that request will take > 21 days to resolve
     preds_21_day = under_21_day_model.predict_proba(processed_df_clf)[:, 1]
@@ -58,7 +70,15 @@ if st.button("Predict"):
     # Probability that request will take < 5 days to resolve
     preds_5_day = under_5_day_model.predict_proba(processed_df_clf)[:, 0]
 
-    st.subheader("Prediction Results")
-    st.write(f"Predicted number of days to resolve request: **{preds_num_days[0]}**")
-    st.write(f"🟢 Probability resolved in < 5 days: **{preds_5_day[0]:.1%}**")
-    st.write(f"🔴 Probability resolved in > 21 days: **{preds_21_day[0]:.1%}**")
+    st.markdown("### Prediction Results")
+    (col1,) = st.columns(1)
+    col1.metric(
+        label="Predicted number of days to resolve request:",
+        value=f"{pred_num_days:.0f}",
+    )
+    col1, col2 = st.columns(2)
+    col1.metric(label="Chance resolved in < 5 days:", value=f"{preds_5_day[0]:.0%}")
+    col2.metric(label="Chance resolved in > 21 days", value=f"{preds_21_day[0]:.0%}")
+    st.info(
+        "These probabilities are based on historical resolution times for similar requests."
+    )
