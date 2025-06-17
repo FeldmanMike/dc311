@@ -71,9 +71,11 @@ def main():
             targ_file_name = (
                 f"processed_target_clf_{str(config['target_threshold'])}.csv"
             )
+            index_file_name = "dataset_indices_clf.json"
         elif config["task_type"] == "regression":
             feat_file_name = "processed_features_reg.csv"
             targ_file_name = "processed_target_reg.csv"
+            index_file_name = "dataset_indices_reg.json"
 
         logger.info("Loading features, targets, and data split indices...")
         feature_df = pd.read_csv(
@@ -82,7 +84,7 @@ def main():
         target_df = pd.read_csv(
             os.path.join(data_dir, targ_file_name), index_col="objectid"
         )
-        with open(os.path.join(data_dir, "dataset_indices.json"), "r") as f:
+        with open(os.path.join(data_dir, index_file_name), "r") as f:
             data_split_dict = json.load(f)
         logger.info("Data loaded.")
 

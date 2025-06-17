@@ -62,10 +62,12 @@ def main():
             targ_file_name = (
                 f"processed_target_clf_{str(config['target_threshold'])}.csv"
             )
+            index_file_name = "dataset_indices_clf.json"
         elif config["task_type"] == "regression":
             pipe_file_name = "feature_pipeline_reg.joblib"
             feat_file_name = "processed_features_reg.csv"
             targ_file_name = "processed_target_reg.csv"
+            index_file_name = "dataset_indices_reg.json"
         else:
             raise ValueError(
                 f"task_type of {config['task_type']} provided. task_type "
@@ -160,8 +162,7 @@ def main():
             feature_df.to_csv(os.path.join(out_file_dir, feat_file_name))
             target_df.to_csv(os.path.join(out_file_dir, targ_file_name))
 
-            outfile = os.path.join(out_file_dir, "dataset_indices.json")
-            with open(outfile, "w") as json_file:
+            with open(os.path.join(out_file_dir, index_file_name), "w") as json_file:
                 json.dump(dataset_indices, json_file, indent=4)
             logger.info("Save complete.")
     except Exception as e:
