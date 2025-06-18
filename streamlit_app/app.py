@@ -10,7 +10,6 @@ import sys
 
 from dotenv import load_dotenv
 import joblib
-import numpy as np
 import pandas as pd
 import streamlit as st
 import yaml
@@ -35,19 +34,32 @@ WARDS = [f"Ward {i}" for i in range(1, 9)]
 
 st.set_page_config(page_title="DC 311 Predictor", layout="wide")
 with st.sidebar:
-    st.header("Your 311 Request Details")
-    request_category = st.selectbox("311 Request Category", list(REQUEST_TYPES.keys()))
-    request_type = st.selectbox("311 Request Type", REQUEST_TYPES[request_category])
+    st.header("Enter Your 311 Request Details")
+    request_category = st.selectbox(
+        "311 Request Category",
+        options=list(REQUEST_TYPES.keys()),
+        help="Select 'All Requests' if you already know your 311 Request Type",
+    )
+    request_type = st.selectbox(
+        "311 Request Type",
+        options=REQUEST_TYPES[request_category],
+        help="Start typing in the dropdown to search and filter options",
+    )
     submission_date = st.date_input("Date Submitted", value=date.today())
-    ward_str = st.selectbox("Ward", WARDS)
-    submit = st.button("Predict")
+    ward_str = st.selectbox("Your Ward", WARDS)
+    submit = st.button("Get Estimates")
+    st.markdown("---")
+    st.markdown(
+        "🔗 [Visit the DC 311 Portal](https://311.dc.gov) to submit or check a 311 request.",
+        unsafe_allow_html=False,
+    )
 
-st.title("DC 311 Request: How Long Should It Take?")
+st.markdown("# 🕒 DC 311 Requests: How Long Should They Take?")
 st.divider()
 
 if not submit:
     st.markdown(
-        "⬅️  Use the sidebar to enter request details, then click **Predict** to see estimated resolution times."
+        "#### ⬅️  Use the sidebar to enter your request details, then click *Get Estimates* to get estimated resolution times."
     )
 else:
     ward = int(ward_str.replace("Ward ", ""))
@@ -70,15 +82,15 @@ else:
     # Probability that request will take < 5 days to resolve
     preds_5_day = under_5_day_model.predict_proba(processed_df_clf)[:, 0]
 
-    st.markdown("### Prediction Results")
+    st.markdown("### Your 311 Resolution Forecast")
     (col1,) = st.columns(1)
     col1.metric(
-        label="Predicted number of days to resolve request:",
-        value=f"{pred_num_days:.0f}",
+        label="Estimated resolution time:",
+        value=f"{pred_num_days:.0f} days",
     )
     col1, col2 = st.columns(2)
     col1.metric(label="Chance resolved in < 5 days:", value=f"{preds_5_day[0]:.0%}")
     col2.metric(label="Chance resolved in > 21 days", value=f"{preds_21_day[0]:.0%}")
-    st.info(
-        "These probabilities are based on historical resolution times for similar requests."
+    st.caption(
+        "These estimates are based on historical resolution times for similar requests."
     )
