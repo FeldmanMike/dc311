@@ -1,8 +1,10 @@
 # DC 311 Requests: How Long Should They Take?
-
 This project estimates resolution times for Washington DC 311 service requests using historical data. It includes a Streamlit web app for user-friendly interaction.
 
+Try the live application on Streamlit: [LINK TO BE ADDED]
+
 ## Getting Started
+Follow the steps below to launch the application locally:
 1. Clone the repository
 ```
 git clone https://github.com/FeldmanMike/dc311.git
@@ -19,7 +21,8 @@ streamlit run streamlit_app/app.py
 ```
 4. Open the app
 ```
-Your browser will open automatically, or visit: http://localhost:8501<br><br>
+Your browser will open automatically, or visit:
+http://localhost:8501
 ```
 
 ## Project Structure
