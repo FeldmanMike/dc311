@@ -19,6 +19,7 @@ api_query_parameters:
 # the max possible number of records.
 max_num_records: -999
 
+# Features to include in model
 features:
   - ward
   - servicecode
@@ -39,13 +40,13 @@ test_year:
 
 # Modeling hyperparameters
 task_type: classification   # regression or classification
-tracking_uri: data/mlruns
-experiment_name: reg_en
-n_trials: 5
-model_type: logistic     # logistic, xgboost, or elasticnet
-pca: false     # true or false
-random_seed: 123
-ranges:
+tracking_uri: data/mlruns   # Local folder where mlflow files are saved
+experiment_name: reg_en     # Name of mlflow experiment (can be anything)
+n_trials: 5                 # Number of optuna trials during model training
+model_type: logistic        # logistic, xgboost, or elasticnet
+pca: false                  # true or false (whether to include PCA in model pipeline)
+random_seed: 123            # for reproducibility
+ranges:                     # Hyperparameter ranges for optuna. Prefix is the model type.
   logreg_c:
     min: 1.0e-10
     max: 1.0e10
