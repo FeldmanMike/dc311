@@ -47,7 +47,7 @@ with st.sidebar:
     )
     submission_date = st.date_input("Date Submitted", value=date.today())
     ward_str = st.selectbox("Your Ward", WARDS)
-    submit = st.button("Get Estimates")
+    submit = st.button("Submit")
     st.markdown("---")
     st.markdown(
         "🔗 [Visit the DC 311 Portal](https://311.dc.gov) to submit or check a 311 request.",
@@ -59,7 +59,7 @@ st.divider()
 
 if not submit:
     st.markdown(
-        "#### ⬅️  Use the sidebar to enter your request details, then click *Get Estimates* to get estimated resolution times."
+        "#### ⬅️  Use the sidebar to enter your request details, then click *Submit* to get estimated resolution times."
     )
 else:
     ward = int(ward_str.replace("Ward ", ""))
