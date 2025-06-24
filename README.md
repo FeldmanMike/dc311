@@ -28,7 +28,7 @@ http://localhost:8501
 ## Project Structure
 ```
 dc311/              # Source code
-models/             # Trained models and feature pipeline
+models/             # Trained models and feature pipelines
 streamlit_app/      # Streamlit app UI
 scripts/            # Data extraction, processing, and model training scripts
 data/               # Input and processed datasets (saved locally)
