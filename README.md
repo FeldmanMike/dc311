@@ -1,3 +1,5 @@
+![DC Flag](assets/dc_311.png)
+
 # DC 311 Requests: How Long Should They Take?
 This project estimates resolution times for Washington DC 311 service requests using machine learning on historical data.
 
@@ -36,7 +38,7 @@ config/             # Config files informing ETL and model training
 ```
 
 ## Acknowledgments
-All data was retrieved from the [DC Open Data Portal](https://opendata.dc.gov/).
+All data was retrieved from the [DC Open Data Portal](https://opendata.dc.gov/). DC 311 image above is from the [DC 311 homepage](https://311.dc.gov/citizen/s/).
 
 ## License
 This project is licensed under the MIT License. You are free to use, modify, and distribute this project with proper attribution.
