@@ -1,4 +1,4 @@
-![DC Flag](https://pngimg.com/uploads/washington_dc/washington_dc_PNG10.png)
+![DC Flag](images/dc_flag.png)
 
 # DC 311 Requests: How Long Should They Take?
 This project estimates resolution times for Washington DC 311 service requests using machine learning on historical data.
