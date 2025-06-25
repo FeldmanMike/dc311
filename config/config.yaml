@@ -5,6 +5,8 @@ dc_311_data_api_endpoints:
     DCGIS_DATA/ServiceRequests/FeatureServer/14/query"
   2023: "https://maps2.dcgis.dc.gov/dcgis/rest/services/\
     DCGIS_DATA/ServiceRequests/FeatureServer/15/query"
+  2024: "https://maps2.dcgis.dc.gov/dcgis/rest/services/\
+    DCGIS_DATA/ServiceRequests/FeatureServer/16/query"
   
 api_query_parameters:
   where: "1=1"
@@ -17,6 +19,7 @@ api_query_parameters:
 # the max possible number of records.
 max_num_records: -999
 
+# Features to include in model
 features:
   - ward
   - servicecode
@@ -24,7 +27,7 @@ features:
 
 # Target values less than or equal to this value are set to 0
 # Greater than this value are set to 1
-target_threshold: 21
+target_threshold: 4
 
 # Assign years to training, validation, and test sets
 train_year:
@@ -36,13 +39,14 @@ test_year:
   - 2024
 
 # Modeling hyperparameters
-tracking_uri: data/mlruns
-experiment_name: xgb_pca_model_2
-n_trials: 100
-model_type: xgboost     # logistic or xgboost
-pca: true     # true or false
-random_seed: 123
-ranges:
+task_type: classification   # regression or classification
+tracking_uri: data/mlruns   # Local folder where mlflow files are saved
+experiment_name: reg_en     # Name of mlflow experiment (can be anything)
+n_trials: 5                 # Number of optuna trials during model training
+model_type: logistic        # logistic, xgboost, or elasticnet
+pca: false                  # true or false (whether to include PCA in model pipeline)
+random_seed: 123            # for reproducibility
+ranges:                     # Hyperparameter ranges for optuna. Prefix is the model type.
   logreg_c:
     min: 1.0e-10
     max: 1.0e10
@@ -57,3 +61,9 @@ ranges:
   xgb_learning_rate:
     min: 1.0e-4
     max: 0.3
+  en_alpha:
+    min: 0
+    max: 0.5
+  en_l1_ratio:
+    min: 0.9
+    max: 1.0

@@ -10,8 +10,16 @@ import mlflow
 import optuna
 import pandas as pd
 from sklearn.decomposition import PCA
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import brier_score_loss, roc_auc_score, average_precision_score
+from sklearn.linear_model import ElasticNet, LogisticRegression
+from sklearn.metrics import (
+    brier_score_loss,
+    roc_auc_score,
+    average_precision_score,
+    mean_squared_error,
+    mean_absolute_error,
+    median_absolute_error,
+    r2_score,
+)
 from sklearn.pipeline import Pipeline
 import xgboost as xgb
 
@@ -20,7 +28,10 @@ logger = logging.getLogger(__name__)
 
 
 def split_data(
-    feature_df: pd.DataFrame, target_df: pd.DataFrame, data_split_dict: Dict
+    feature_df: pd.DataFrame,
+    target_df: pd.DataFrame,
+    data_split_dict: Dict,
+    holdout_set_type: Optional[str] = "validation",
 ) -> Tuple:
     """
     Split data into train and test sets.
@@ -30,15 +41,27 @@ def split_data(
         target_df: DataFrame with targets
         data_split_dict: Dictionary with indices on which to split data into train
             and test sets
+        holdout_set_type: {"validation", "test"}
+            Whether the holdout set should be from the validation or test set. If
+            from the test set, then the training set is composed of the training
+            and validation sets.
 
     Returns:
         Tuple with four elements: train features, train targets, test features,
         test targets
     """
-    X_train = feature_df.loc[data_split_dict["train"]]
-    y_train = target_df.loc[data_split_dict["train"]]["target"]
-    X_test = feature_df.loc[data_split_dict["validation"]]
-    y_test = target_df.loc[data_split_dict["validation"]]["target"]
+    if holdout_set_type == "validation":
+        X_train = feature_df.loc[data_split_dict["train"]]
+        y_train = target_df.loc[data_split_dict["train"]]["target"]
+        X_test = feature_df.loc[data_split_dict["validation"]]
+        y_test = target_df.loc[data_split_dict["validation"]]["target"]
+    elif holdout_set_type == "test":
+        train_plus_val_idx = data_split_dict["train"] + data_split_dict["validation"]
+        X_train = feature_df.loc[train_plus_val_idx]
+        y_train = target_df.loc[train_plus_val_idx]["target"]
+        X_test = feature_df.loc[data_split_dict["test"]]
+        y_test = target_df.loc[data_split_dict["test"]]["target"]
+
     return X_train, y_train, X_test, y_test
 
 
@@ -46,6 +69,7 @@ def train_model(
     X: pd.DataFrame,
     y: pd.DataFrame,
     params: Dict,
+    task_type: str,
     model_type: Optional[str] = "logistic",
     pca: Optional[bool] = False,
     random_seed: Optional[int] = 0,
@@ -57,6 +81,8 @@ def train_model(
         X: DataFrame of features
         y: DataFrame with targets corresponding to samples in X
         params: Dictionary of model hyperparameters
+        task_type: {"regression", "classification"}
+            Type of machine learning task
         model_type: {"logistic", "xgboost"}
             Type of model to be trained
         pca: Whether to apply principal component analysis to the feature data before
@@ -75,29 +101,101 @@ def train_model(
             )
         )
 
-    if model_type == "logistic":
-        steps.append(
-            (
-                "classifier",
-                LogisticRegression(C=params["logreg_c"], random_state=random_seed),
+    if task_type == "classification":
+        if model_type == "logistic":
+            steps.append(
+                (
+                    "classifier",
+                    LogisticRegression(C=params["logreg_c"], random_state=random_seed),
+                )
             )
-        )
-    elif model_type == "xgboost":
-        steps.append(
-            (
-                "classifier",
-                xgb.XGBClassifier(
-                    n_estimators=params["xgb_n_estimators"],
-                    max_depth=params["xgb_max_depth"],
-                    learning_rate=params["xgb_learning_rate"],
-                    random_state=random_seed,
-                ),
+        elif model_type == "xgboost":
+            steps.append(
+                (
+                    "classifier",
+                    xgb.XGBClassifier(
+                        n_estimators=params["xgb_n_estimators"],
+                        max_depth=params["xgb_max_depth"],
+                        learning_rate=params["xgb_learning_rate"],
+                        random_state=random_seed,
+                    ),
+                )
             )
-        )
+        else:
+            raise ValueError(
+                f"model_type of {model_type} is not supported with classification task_type."
+            )
+    elif task_type == "regression":
+        if model_type == "elasticnet":
+            steps.append(
+                (
+                    "regressor",
+                    ElasticNet(
+                        alpha=params["en_alpha"],
+                        l1_ratio=params["en_l1_ratio"],
+                        random_state=random_seed,
+                    ),
+                )
+            )
+        elif model_type == "xgboost":
+            steps.append(
+                (
+                    "regressor",
+                    xgb.XGBRegressor(
+                        n_estimators=params["xgb_n_estimators"],
+                        max_depth=params["xgb_max_depth"],
+                        learning_rate=params["xgb_learning_rate"],
+                        random_state=random_seed,
+                    ),
+                )
+            )
+        else:
+            raise ValueError(
+                f"model_type of {model_type} is not supported with regression task_type."
+            )
 
     model_pipeline = Pipeline(steps)
     model_pipeline.fit(X, y)
     return model_pipeline
+
+
+def evaluate_model(
+    model: Pipeline, X_test: pd.DataFrame, y_test: pd.DataFrame, task_type: str
+) -> Dict:
+    """
+    Evaluate model and output set of metrics.
+
+    Args:
+        model: A fit model pipeline object
+        X_test: Features to pass to model
+        y_test: Ground truth labels
+        task_type: {'classification', 'regression'}
+            Type of task that will be performed with model
+
+    Returns:
+        Dictionary where the keys are evaluation metrics and the values
+        are the metric values recorded during model evaluation.
+    """
+    if task_type == "classification":
+        y_proba = model.predict_proba(X_test)[:, 1]
+        return {
+            "brier_score_loss": brier_score_loss(y_test, y_proba),
+            "roc_auc_score": roc_auc_score(y_test, y_proba),
+            "average_precision_score": average_precision_score(y_test, y_proba),
+        }
+    if task_type == "regression":
+        y_pred = model.predict(X_test)
+        return {
+            "mean_squared_error": mean_squared_error(y_test, y_pred),
+            "mean_absolute_error": mean_absolute_error(y_test, y_pred),
+            "median_absolute_error": median_absolute_error(y_test, y_pred),
+            "r2_score": r2_score(y_test, y_pred),
+        }
+
+    raise ValueError(
+        f"task_type of {task_type} is not supported. "
+        f"task_type must be in ('classification', 'regression')."
+    )
 
 
 def objective(
@@ -105,6 +203,7 @@ def objective(
     feature_df: pd.DataFrame,
     target_df: pd.DataFrame,
     data_split_dict: Dict,
+    task_type: str,
     model_type: Optional[str] = "logistic",
     pca: Optional[bool] = False,
     ranges: Optional[Dict] = None,
@@ -121,6 +220,8 @@ def objective(
         target_df: DataFrame with targets associated with features
         data_split_dict: Dictionary that specifies indices for samples associated with
             train and test sets
+        task_type: {"regression", "classification"}
+            Type of machine learning task
         model_type: {"logistic", "xgboost"}
             Type of model to train
         pca: Whether to apply principal component analysis to the feature data before
@@ -130,7 +231,7 @@ def objective(
         random_seed: Seed provided to ensure reproducibility
 
     Returns:
-        Brier score loss associated with training run
+        Score of objective function associated with training run
     """
     child_run_name = (
         f"child_run_{trial.number}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -141,13 +242,8 @@ def objective(
         )
         params = {}
 
-        if model_type == "logistic":
-            c_range = ranges["logreg_c"]
-            params["logreg_c"] = trial.suggest_float(
-                "logreg_c", float(c_range["min"]), float(c_range["max"]), log=True
-            )
-
-        elif model_type == "xgboost":
+        # xgboost can be used for regression or classification
+        if model_type == "xgboost":
             max_depth_range = ranges["xgb_max_depth"]
             n_estimators_range = ranges["xgb_n_estimators"]
             lr_range = ranges["xgb_learning_rate"]
@@ -168,6 +264,41 @@ def objective(
                 log=True,
             )
 
+        elif task_type == "classification":
+            if model_type == "logistic":
+                c_range = ranges["logreg_c"]
+                params["logreg_c"] = trial.suggest_float(
+                    "logreg_c", float(c_range["min"]), float(c_range["max"]), log=True
+                )
+
+            else:
+                raise ValueError(
+                    f"model_type {model_type} is not supported when task_type is classification."
+                )
+        elif task_type == "regression":
+            if model_type == "elasticnet":
+                alpha_range = ranges["en_alpha"]
+                l1_ratio_range = ranges["en_l1_ratio"]
+                params["en_alpha"] = trial.suggest_float(
+                    "en_alpha",
+                    float(alpha_range["min"]),
+                    float(alpha_range["max"]),
+                )
+                params["en_l1_ratio"] = trial.suggest_float(
+                    "en_l1_ratio",
+                    float(l1_ratio_range["min"]),
+                    float(l1_ratio_range["max"]),
+                )
+            else:
+                raise ValueError(
+                    f"model_type {model_type} is not supported when task_type is regression."
+                )
+        else:
+            raise ValueError(
+                f"task_type is {task_type} but task_type must be in"
+                f"('classification', 'regression')"
+            )
+
         if pca:
             params["pca_n_components"] = trial.suggest_int(
                 "pca_n_components",
@@ -179,23 +310,33 @@ def objective(
             X=X_train,
             y=y_train,
             params=params,
+            task_type=task_type,
             model_type=model_type,
             pca=pca,
             random_seed=random_seed,
         )
-
-        y_proba = model.predict_proba(X_test)[:, 1]
-        brier_score = brier_score_loss(y_test, y_proba)
-        roc_auc = roc_auc_score(y_test, y_proba)
-        average_precision = average_precision_score(y_test, y_proba)
-
-        params["objective"] = "clf:min_brier_score"
         mlflow.log_params(params)
-        mlflow.log_metrics(
-            {
-                "brier_score_loss": brier_score,
-                "roc_auc_score": roc_auc,
-                "average_precision_score": average_precision,
-            }
-        )
-        return brier_score
+
+        metric_dict = evaluate_model(model, X_test, y_test, task_type)
+        if task_type == "classification":
+            params["objective"] = "clf:min_brier_score"
+            mlflow.log_metrics(
+                {
+                    "brier_score_loss": metric_dict["brier_score_loss"],
+                    "roc_auc_score": metric_dict["roc_auc_score"],
+                    "average_precision_score": metric_dict["average_precision_score"],
+                }
+            )
+            return metric_dict["brier_score_loss"]
+
+        if task_type == "regression":
+            params["objective"] = "reg:min_mean_squared_error"
+            mlflow.log_metrics(
+                {
+                    "mean_squared_error": metric_dict["mean_squared_error"],
+                    "mean_absolute_error": metric_dict["mean_absolute_error"],
+                    "median_absolute_error": metric_dict["median_absolute_error"],
+                    "r2_score": metric_dict["r2_score"],
+                }
+            )
+            return metric_dict["median_absolute_error"]

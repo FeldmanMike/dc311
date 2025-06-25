@@ -124,11 +124,6 @@ def engineer_features():
                             "adddate",
                         ),
                         ("add_day", FunctionTransformer(create_day_feature), "adddate"),
-                        (
-                            "add_during_business_hours",
-                            FunctionTransformer(create_business_hours_feature),
-                            "adddate",
-                        ),
                     ],
                     remainder="passthrough",
                     verbose_feature_names_out=True,
