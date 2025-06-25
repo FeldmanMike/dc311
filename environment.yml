@@ -19,4 +19,5 @@ dependencies:
   - xgboost
   - streamlit
   - pyyaml
+  - joblib
 
