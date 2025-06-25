@@ -38,7 +38,7 @@ config/             # Config files informing ETL and model training
 ```
 
 ## Acknowledgments
-All data was retrieved from the [DC Open Data Portal](https://opendata.dc.gov/).
+All data was retrieved from the [DC Open Data Portal](https://opendata.dc.gov/). DC 311 image above is from [DC 311 homepage](https://311.dc.gov/citizen/s/).
 
 ## License
 This project is licensed under the MIT License. You are free to use, modify, and distribute this project with proper attribution.
