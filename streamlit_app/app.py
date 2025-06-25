@@ -4,23 +4,15 @@ Develop Streamlit app
 
 from datetime import date
 import json
-import os
 import os.path as osp
 import sys
 
-from dotenv import load_dotenv
 import joblib
 import pandas as pd
 import streamlit as st
-import yaml
 
 
 sys.path.append(osp.dirname(osp.dirname(osp.abspath(__file__))))
-
-load_dotenv()
-config_path = os.getenv("DC_311_CONFIG_PATH")
-with open(config_path, "r") as file:
-    config = yaml.safe_load(file)
 
 under_21_day_model = joblib.load("models/under_21_day_model.joblib")
 under_5_day_model = joblib.load("models/under_5_day_model.joblib")
