@@ -24,7 +24,7 @@ with open("streamlit_app/request_categories.json") as f:
     REQUEST_TYPES = json.load(f)
 WARDS = [f"Ward {i}" for i in range(1, 9)]
 
-st.set_page_config(page_title="DC 311 Predictor", layout="wide")
+st.set_page_config(page_title="DC 311 ETA", layout="wide")
 with st.sidebar:
     st.header("Enter Your 311 Request Details")
     request_category = st.selectbox(
