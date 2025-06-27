@@ -14,7 +14,7 @@ cd dc311
 ```
 2. Create and activate the environment
 ```
-conda env create -f environment.yml
+conda env create -f environment_dev.yml
 conda activate dcenv
 ```
 3. Launch the Streamlit app

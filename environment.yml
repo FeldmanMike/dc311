@@ -4,20 +4,6 @@ channels:
 dependencies:
   - python=3.12
   - pandas
-  - numpy
-  - scikit-learn
-  - mlflow
-  - matplotlib
-  - seaborn
-  - jupyter
-  - optuna
-  - flake8
-  - black
-  - flask
-  - python-dotenv
-  - pytest
-  - xgboost
   - streamlit
-  - pyyaml
   - joblib
 
