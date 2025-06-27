@@ -1,6 +1,6 @@
 # Requirements for Streamlit web app
-pandas
-scikit-learn
+pandas=2.2.2
+scikit-learn=1.5.1
 streamlit
 joblib
 
