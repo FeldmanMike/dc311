@@ -1,5 +1,6 @@
 # Requirements for Streamlit web app
 pandas
+scikit-learn
 streamlit
 joblib
 
