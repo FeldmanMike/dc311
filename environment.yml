@@ -1,9 +1,0 @@
-name: dcenv
-channels:
-  - conda-forge
-dependencies:
-  - python=3.12
-  - pandas
-  - streamlit
-  - joblib
-
