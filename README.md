@@ -3,7 +3,7 @@
 # DC 311 Requests: How Long Should They Take?
 This project estimates resolution times for Washington DC 311 service requests using machine learning on historical data.
 
-Try the live application on Streamlit: [LINK TO BE ADDED]
+Try the live application on Streamlit: https://dc311eta.streamlit.app/
 
 ## Getting Started
 Follow the steps below to launch the application locally:
